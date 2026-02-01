@@ -1,3 +1,20 @@
 {
-  "last_seen": {}
+  "last_seen": {},
+  "seen_items": {
+    "Pokemon GO Hub": [
+      "94f8988419682df0",
+      "477b57450fbef04d",
+      "baf1d47ccef03180",
+      "73b8cef243e8630a",
+      "2a58aaed6b77ab4f",
+      "62f963e61edb37a6",
+      "ec3ae734a6bf77bd",
+      "5ea2906f6ccb4f32",
+      "f5f9ca2f0a72afbe",
+      "5ec3b343818c184c"
+    ],
+    "Pokemon Information": [
+      "6fa1f59e5135be91"
+    ]
+  }
 }
