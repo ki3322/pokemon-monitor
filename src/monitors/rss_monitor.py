@@ -2,11 +2,16 @@ import feedparser
 import hashlib
 from typing import List, Dict, Optional
 from dataclasses import dataclass
+from datetime import datetime, timezone, timedelta
+import time
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from config import NITTER_INSTANCES, REQUEST_TIMEOUT, USER_AGENT
+
+# 只通知這個時間範圍內的文章（小時）
+MAX_AGE_HOURS = 24
 
 
 @dataclass
@@ -16,6 +21,22 @@ class FeedItem:
     link: str
     source: str
     source_type: str  # 'website' or 'twitter'
+
+
+def is_recent(entry, max_age_hours: int = MAX_AGE_HOURS) -> bool:
+    """檢查文章是否在指定時間內發布"""
+    published = entry.get("published_parsed") or entry.get("updated_parsed")
+    if not published:
+        # 如果沒有時間資訊，假設是新的
+        return True
+
+    try:
+        published_dt = datetime.fromtimestamp(time.mktime(published), tz=timezone.utc)
+        now = datetime.now(timezone.utc)
+        age = now - published_dt
+        return age < timedelta(hours=max_age_hours)
+    except Exception:
+        return True
 
 
 def generate_item_id(link: str, title: str) -> str:
@@ -44,6 +65,10 @@ def get_rss_items(source: Dict) -> List[FeedItem]:
         return items
 
     for entry in feed.entries[:10]:  # 只處理最新 10 筆
+        # 過濾掉超過 24 小時的文章
+        if not is_recent(entry):
+            continue
+
         item_id = generate_item_id(
             entry.get("link", ""),
             entry.get("title", "")
@@ -68,6 +93,10 @@ def get_twitter_items(username: str) -> List[FeedItem]:
 
         if feed is not None and feed.entries:
             for entry in feed.entries[:10]:
+                # 過濾掉超過 24 小時的推文
+                if not is_recent(entry):
+                    continue
+
                 # Nitter RSS 的 title 通常是推文內容
                 title = entry.get("title", "")
                 if len(title) > 100:
