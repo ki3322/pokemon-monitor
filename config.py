@@ -28,11 +28,6 @@ SCRAPE_SOURCES = [
         "type": "website",
     },
     {
-        "name": "Pokemon Center Online",
-        "url": "https://www.pokemoncenter-online.com/",
-        "type": "website",
-    },
-    {
         "name": "Pokemon Information",
         "url": "https://pokemon-infomation.com/",
         "type": "website",
