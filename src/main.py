@@ -79,12 +79,14 @@ def main():
 
     # 3. 監控 Twitter 帳號
     print("\n🐦 檢查 Twitter 帳號...")
+    twitter_failures = []
     for username in TWITTER_ACCOUNTS:
         print(f"  - @{username}", end=" ")
         items = get_twitter_items(username)
 
         if not items:
             print("(無法取得)")
+            twitter_failures.append(username)
             continue
 
         source_id = f"twitter_{username}"
@@ -104,6 +106,16 @@ def main():
                 source_type=item.source_type,
             )
             new_items_count += 1
+
+    # 檢查 Twitter 監控是否失效
+    if twitter_failures and len(twitter_failures) >= len(TWITTER_ACCOUNTS) // 2:
+        notifier.send_message(
+            "⚠️ <b>Twitter 監控警告</b>\n\n"
+            f"有 {len(twitter_failures)}/{len(TWITTER_ACCOUNTS)} 個帳號無法取得資料。\n"
+            "可能是 X Cookie 已過期，請更新 Zeabur 的環境變數：\n"
+            "• TWITTER_AUTH_TOKEN\n"
+            "• TWITTER_CT0"
+        )
 
     # 儲存狀態
     state.save()
