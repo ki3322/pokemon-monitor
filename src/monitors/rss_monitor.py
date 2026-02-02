@@ -8,7 +8,7 @@ import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from config import NITTER_INSTANCES, REQUEST_TIMEOUT, USER_AGENT
+from config import RSSHUB_INSTANCE, REQUEST_TIMEOUT, USER_AGENT
 
 # 只通知這個時間範圍內的文章（小時）
 MAX_AGE_HOURS = 24
@@ -85,40 +85,38 @@ def get_rss_items(source: Dict) -> List[FeedItem]:
 
 
 def get_twitter_items(username: str) -> List[FeedItem]:
+    """透過 RSSHub 取得 Twitter/X 帳號的推文"""
     items = []
 
-    for instance in NITTER_INSTANCES:
-        url = f"{instance}/{username}/rss"
-        feed = fetch_rss(url)
+    # 使用 RSSHub 的 Twitter 路由
+    url = f"{RSSHUB_INSTANCE}/twitter/user/{username}"
+    feed = fetch_rss(url)
 
-        if feed is not None and feed.entries:
-            for entry in feed.entries[:10]:
-                # 過濾掉超過 24 小時的推文
-                if not is_recent(entry):
-                    continue
+    if feed is None or not feed.entries:
+        return items
 
-                # Nitter RSS 的 title 通常是推文內容
-                title = entry.get("title", "")
-                if len(title) > 100:
-                    title = title[:97] + "..."
+    for entry in feed.entries[:10]:
+        # 過濾掉超過 24 小時的推文
+        if not is_recent(entry):
+            continue
 
-                item_id = generate_item_id(
-                    entry.get("link", ""),
-                    entry.get("title", "")
-                )
+        title = entry.get("title", "")
+        if len(title) > 100:
+            title = title[:97] + "..."
 
-                # 轉換 Nitter 連結為 Twitter 連結
-                link = entry.get("link", "")
-                if instance in link:
-                    link = link.replace(instance, "https://twitter.com")
+        item_id = generate_item_id(
+            entry.get("link", ""),
+            entry.get("title", "")
+        )
 
-                items.append(FeedItem(
-                    id=item_id,
-                    title=title,
-                    link=link,
-                    source=f"@{username}",
-                    source_type="twitter",
-                ))
-            break  # 成功獲取後跳出迴圈
+        link = entry.get("link", "")
+
+        items.append(FeedItem(
+            id=item_id,
+            title=title,
+            link=link,
+            source=f"@{username}",
+            source_type="twitter",
+        ))
 
     return items

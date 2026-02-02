@@ -4,12 +4,11 @@ import os
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
-# Nitter 實例列表 (按優先順序)
-NITTER_INSTANCES = [
-    "https://nitter.poast.org",
-    "https://nitter.privacydev.net",
-    "https://nitter.cz",
-]
+# RSSHub 實例 (用於 Twitter/X 監控)
+RSSHUB_INSTANCE = "https://pkmnhbs.zeabur.app"
+
+# Nitter 實例列表 (已棄用，改用 RSSHub)
+NITTER_INSTANCES = []
 
 # RSS 來源 (網站)
 RSS_SOURCES = [
@@ -34,18 +33,16 @@ SCRAPE_SOURCES = [
     },
 ]
 
-# Twitter 帳號 (透過 Nitter RSS)
-# 注意: Nitter 實例目前大多已失效，Twitter 監控功能暫時停用
-# 如需啟用，請取消下方註解並確認有可用的 Nitter 實例
+# Twitter/X 帳號 (透過 RSSHub)
 TWITTER_ACCOUNTS = [
-    # "PokemonGoApp",
-    # "Zabi_pokeka",
-    # "pokecamatomeru",
-    # "UniteVids",
-    # "pokerapidinfo",
-    # "pokepoke_GW",
-    # "pokemongoappko",
-    # "snkrdunk_akiba",
+    "PokemonGoApp",
+    "Zabi_pokeka",
+    "pokecamatomeru",
+    "UniteVids",
+    "pokerapidinfo",
+    "pokepoke_GW",
+    "pokemongoappko",
+    "snkrdunk_akiba",
 ]
 
 # 狀態檔案路徑
