@@ -47,7 +47,6 @@ TWITTER_ACCOUNTS = [
     "pokerapidinfo",
     "pokepoke_GW",
     "pokemongoappko",
-    "snkrdunk_akiba",
 ]
 
 # 狀態檔案路徑
