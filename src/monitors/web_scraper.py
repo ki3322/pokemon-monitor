@@ -1,18 +1,13 @@
 import requests
 from bs4 import BeautifulSoup
 import hashlib
-import re
 from typing import List, Dict, Optional
 from dataclasses import dataclass
-from datetime import datetime, timezone, timedelta
 import sys
 import os
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from config import REQUEST_TIMEOUT, USER_AGENT
-
-# 只通知這個時間範圍內的文章（小時）
-MAX_AGE_HOURS = 24
 
 
 @dataclass
@@ -75,56 +70,6 @@ def scrape_serebii(source: Dict) -> List[ScrapedItem]:
 
     return items
 
-
-def scrape_pokemon_center_online(source: Dict) -> List[ScrapedItem]:
-    """爬取 Pokemon Center Online 新聞"""
-    items = []
-    soup = fetch_page(source["url"])
-
-    if soup is None:
-        return items
-
-    # 嘗試多種選擇器來找新聞
-    selectors = [
-        "a[href*='/news/']",
-        ".news-item a",
-        ".information a",
-        "article a",
-    ]
-
-    seen_links = set()
-    for selector in selectors:
-        for link_tag in soup.select(selector)[:15]:
-            link = link_tag.get("href", "")
-            if not link or link in seen_links:
-                continue
-
-            if not link.startswith("http"):
-                link = "https://www.pokemoncenter-online.com" + link
-
-            # 過濾非新聞連結
-            if "/news/" not in link and "/information/" not in link:
-                continue
-
-            seen_links.add(link)
-            title = link_tag.get_text(strip=True)
-            if not title or len(title) < 5:
-                continue
-
-            item_id = generate_item_id(link, title)
-            items.append(ScrapedItem(
-                id=item_id,
-                title=title[:100] + "..." if len(title) > 100 else title,
-                link=link,
-                source=source["name"],
-            ))
-
-            if len(items) >= 10:
-                break
-        if len(items) >= 10:
-            break
-
-    return items
 
 
 def scrape_pokemon_infomation(source: Dict) -> List[ScrapedItem]:
@@ -216,8 +161,6 @@ def get_scraped_items(source: Dict) -> List[ScrapedItem]:
 
     if "serebii.net" in url:
         return scrape_serebii(source)
-    elif "pokemoncenter-online.com" in url:
-        return scrape_pokemon_center_online(source)
     elif "pokemon-infomation.com" in url:
         return scrape_pokemon_infomation(source)
     elif "pokebeach.com" in url:

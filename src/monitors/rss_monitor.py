@@ -3,7 +3,7 @@ import hashlib
 from typing import List, Dict, Optional
 from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
-import time
+import calendar
 import sys
 import os
 
@@ -32,7 +32,7 @@ def is_recent(entry, max_age_hours: int = MAX_AGE_HOURS) -> bool:
         return True
 
     try:
-        published_dt = datetime.fromtimestamp(time.mktime(published), tz=timezone.utc)
+        published_dt = datetime.fromtimestamp(calendar.timegm(published), tz=timezone.utc)
         now = datetime.now(timezone.utc)
         age = now - published_dt
         return age < timedelta(hours=max_age_hours)

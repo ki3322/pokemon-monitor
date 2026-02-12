@@ -1,5 +1,4 @@
 import requests
-from typing import Union
 import sys
 import os
 
