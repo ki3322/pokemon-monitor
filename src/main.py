@@ -10,6 +10,18 @@ from src.state import StateManager
 from src.notifier import TelegramNotifier
 from src.monitors.rss_monitor import get_rss_items, get_twitter_items
 from src.monitors.web_scraper import get_scraped_items
+from deep_translator import GoogleTranslator
+
+
+def translate_title(text: str) -> str:
+    """將標題翻譯成繁體中文，失敗時回傳原文"""
+    if not text:
+        return text
+    try:
+        result = GoogleTranslator(source="auto", target="zh-TW").translate(text)
+        return result or text
+    except Exception:
+        return text
 
 
 def main():
@@ -47,7 +59,7 @@ def main():
 
         for item in new_items:
             notifier.notify_new_item(
-                title=item.title,
+                title=translate_title(item.title),
                 link=item.link,
                 source=item.source,
                 source_type=item.source_type,
@@ -74,7 +86,7 @@ def main():
 
         for item in new_items:
             notifier.notify_new_item(
-                title=item.title,
+                title=translate_title(item.title),
                 link=item.link,
                 source=item.source,
                 source_type=item.source_type,
@@ -108,7 +120,7 @@ def main():
 
         for item in new_items:
             notifier.notify_new_item(
-                title=item.title,
+                title=translate_title(item.title),
                 link=item.link,
                 source=item.source,
                 source_type=item.source_type,
