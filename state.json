@@ -2,8 +2,6 @@
   "last_seen": {},
   "seen_items": {
     "Pokemon GO Hub": [
-      "73b8cef243e8630a",
-      "2a58aaed6b77ab4f",
       "62f963e61edb37a6",
       "ec3ae734a6bf77bd",
       "5ea2906f6ccb4f32",
@@ -101,7 +99,9 @@
       "cb259f1def0de927",
       "0a8b2dc2cad1995c",
       "e4f79242fad23acf",
-      "baa711c243ddbc39"
+      "baa711c243ddbc39",
+      "835a038b86741a70",
+      "27b208f207c9aac5"
     ],
     "Pokemon Information": [
       "6fa1f59e5135be91",
@@ -179,7 +179,8 @@
       "0d33af267fa9499f",
       "ee906df62935a3e9",
       "5ba33f68eb28ecc9",
-      "da7be21c0604498c"
+      "da7be21c0604498c",
+      "d7d4d0e38d3ef4df"
     ],
     "twitter_PokemonGoApp": [
       "0ab712f7071fab51",
