@@ -1,5 +1,6 @@
 import feedparser
 import hashlib
+import requests
 from typing import List, Dict, Optional
 from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
@@ -47,10 +48,13 @@ def generate_item_id(link: str, title: str) -> str:
 
 def fetch_rss(url: str) -> Optional[feedparser.FeedParserDict]:
     try:
-        feed = feedparser.parse(
+        response = requests.get(
             url,
-            request_headers={"User-Agent": USER_AGENT},
+            headers={"User-Agent": USER_AGENT},
+            timeout=REQUEST_TIMEOUT,
         )
+        response.raise_for_status()
+        feed = feedparser.parse(response.text)
         if feed.bozo and not feed.entries:
             return None
         return feed
