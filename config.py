@@ -5,7 +5,7 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 # RSSHub 實例 (用於 Twitter/X 監控)
-RSSHUB_INSTANCE = "https://pkmnhbs.zeabur.app"
+RSSHUB_INSTANCE = "https://pokemonhubs.zeabur.app"
 
 # Nitter 實例列表 (已棄用，改用 RSSHub)
 NITTER_INSTANCES = []
