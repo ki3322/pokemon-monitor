@@ -156,6 +156,46 @@ def scrape_pokebeach(source: Dict) -> List[ScrapedItem]:
     return items
 
 
+def scrape_toy_people(source: Dict) -> List[ScrapedItem]:
+    """爬取 玩具人 toy-people.com 文章列表"""
+    items = []
+    soup = fetch_page(source["url"])
+
+    if soup is None:
+        return items
+
+    for card in soup.find_all("div", class_="card")[:15]:
+        text_div = card.find("div", class_="text")
+        if not text_div:
+            continue
+
+        h2 = text_div.find("h2")
+        if not h2:
+            continue
+
+        link_tag = h2.find("a")
+        if not link_tag or not link_tag.get("href"):
+            continue
+
+        link = link_tag.get("href", "")
+        if not link.startswith("http"):
+            link = "https://www.toy-people.com" + link
+
+        title = link_tag.get_text(strip=True)
+        if not title:
+            continue
+
+        item_id = generate_item_id(link, title)
+        items.append(ScrapedItem(
+            id=item_id,
+            title=title[:100] + "..." if len(title) > 100 else title,
+            link=link,
+            source=source["name"],
+        ))
+
+    return items
+
+
 def get_scraped_items(source: Dict) -> List[ScrapedItem]:
     url = source.get("url", "")
 
@@ -165,5 +205,7 @@ def get_scraped_items(source: Dict) -> List[ScrapedItem]:
         return scrape_pokemon_infomation(source)
     elif "pokebeach.com" in url:
         return scrape_pokebeach(source)
+    elif "toy-people.com" in url:
+        return scrape_toy_people(source)
 
     return []

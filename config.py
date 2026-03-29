@@ -36,6 +36,16 @@ SCRAPE_SOURCES = [
         "url": "https://www.pokebeach.com/",
         "type": "website",
     },
+    {
+        "name": "玩具人 寶可夢",
+        "url": "https://www.toy-people.com/?tag=%E5%AF%B6%E5%8F%AF%E5%A4%A2",
+        "type": "website",
+    },
+    {
+        "name": "玩具人 寶可夢中心",
+        "url": "https://www.toy-people.com/?tag=%E5%AF%B6%E5%8F%AF%E5%A4%A2%E4%B8%AD%E5%BF%83",
+        "type": "website",
+    },
 ]
 
 # Twitter/X 帳號 (透過 RSSHub)
