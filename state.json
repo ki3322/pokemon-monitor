@@ -2,8 +2,6 @@
   "last_seen": {},
   "seen_items": {
     "Pokemon GO Hub": [
-      "7a2a8e00032cb71a",
-      "dc55f7d0790f02fc",
       "9e00f7ffbce7318c",
       "70314e9bd3173951",
       "e35060a62061bb7b",
@@ -101,7 +99,9 @@
       "1568c8d1f7fdbe2d",
       "72ea2d5168868f23",
       "81fe61e331fb61eb",
-      "7ec5c67aaf630113"
+      "7ec5c67aaf630113",
+      "f2813e4c701aa879",
+      "88e9d884f6c999ba"
     ],
     "Pokemon Information": [
       "6fa1f59e5135be91",
@@ -466,7 +466,6 @@
       "7ae3c03c9697a825"
     ],
     "twitter_UniteVids": [
-      "cb210996de1372fa",
       "aac2d042ddd38867",
       "ebfa19cc8d03fd1b",
       "e5b370cf0e954326",
@@ -565,7 +564,8 @@
       "6c955449be0b7711",
       "46ef0313f3fb1a9e",
       "ffbf46a3ae2864a3",
-      "f6408351852f21ca"
+      "f6408351852f21ca",
+      "42ff3bf264f40d3a"
     ],
     "twitter_pokerapidinfo": [
       "bbc4e68bc1b9ac54",
@@ -840,7 +840,8 @@
       "11a69d670f272a89",
       "bcf80773b48f4d7c",
       "92fb1fefdf6068da",
-      "65a8f9800c1d5eed"
+      "65a8f9800c1d5eed",
+      "0a90a271f33fb8e3"
     ],
     "玩具人 寶可夢中心": [
       "676b49150c12ed6a",
@@ -856,7 +857,8 @@
       "41c3c0accf244936",
       "e62662b5d9d6d99a",
       "0c6c7fb47f159ddc",
-      "795be557304056ca"
+      "795be557304056ca",
+      "0a90a271f33fb8e3"
     ]
   }
 }
