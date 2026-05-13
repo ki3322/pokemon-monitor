@@ -2,9 +2,6 @@
   "last_seen": {},
   "seen_items": {
     "Pokemon GO Hub": [
-      "7fb20850a2cefea3",
-      "95669026bebcf60c",
-      "e2eec93297b8a789",
       "be00c18caae74399",
       "a0734c1cba00eca9",
       "ec48155f2442fee3",
@@ -101,7 +98,10 @@
       "bcd52d0c0ea50294",
       "418235d08318ca2a",
       "91230579628c82fa",
-      "abcb7d8829b9a771"
+      "abcb7d8829b9a771",
+      "b2ff19601907735f",
+      "de74680bc085348a",
+      "a8ff3b7c383af37b"
     ],
     "Pokemon Information": [
       "6fa1f59e5135be91",
@@ -150,10 +150,10 @@
       "b17ef9993474b572",
       "91276c3716336271",
       "d02dda72c62f01e9",
-      "5b6bc34e1cf066f1"
+      "5b6bc34e1cf066f1",
+      "ddb864a29db4a1ef"
     ],
     "Serebii.net": [
-      "e33eedf521f60490",
       "fea935bec03a597f",
       "829d73078a3fbecb",
       "a471d317f36c2d83",
@@ -252,7 +252,8 @@
       "efc005102a16122d",
       "177bc4b1ff637c46",
       "89cc4ce441fbeff2",
-      "897df385e0a98ce3"
+      "897df385e0a98ce3",
+      "b04785fbf2261d07"
     ],
     "twitter_PokemonGoApp": [
       "0ab712f7071fab51",
