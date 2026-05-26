@@ -2,8 +2,6 @@
   "last_seen": {},
   "seen_items": {
     "Pokemon GO Hub": [
-      "8de5d538f3c4e338",
-      "1568c8d1f7fdbe2d",
       "72ea2d5168868f23",
       "81fe61e331fb61eb",
       "7ec5c67aaf630113",
@@ -101,7 +99,9 @@
       "5c43d71bdc8e23ba",
       "8c749daa4929f6f8",
       "917a7171c2ce027c",
-      "cdcf0e8cf397c342"
+      "cdcf0e8cf397c342",
+      "0a41f66f80b64a3e",
+      "40e677366fcf6fe9"
     ],
     "Pokemon Information": [
       "6fa1f59e5135be91",
@@ -334,7 +334,8 @@
       "cc7503afc41cb1a6",
       "5f54748d6629f0a6",
       "f610dcff66264dff",
-      "22e97757f346e7a6"
+      "22e97757f346e7a6",
+      "0b9c34cd68a57d53"
     ],
     "twitter_Zabi_pokeka": [
       "f5f8505f0b2ed38f",
@@ -819,7 +820,6 @@
       "6e5bb3a45ddf7130"
     ],
     "PokeBeach": [
-      "c5d80e08ba263f66",
       "b79e772dca2087f7",
       "02d7c97217ccb55e",
       "7f41e2b1190144ad",
@@ -918,7 +918,8 @@
       "b99c7aa52702b47a",
       "1ee1792714e20049",
       "06053117ff3b2311",
-      "e4fc60d458d9d434"
+      "e4fc60d458d9d434",
+      "feb89426f70b87af"
     ],
     "玩具人 寶可夢": [
       "2fba609ee27be846",
