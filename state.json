@@ -2,8 +2,6 @@
   "last_seen": {},
   "seen_items": {
     "Pokemon GO Hub": [
-      "619c1143ac387749",
-      "4d838b054721f7e5",
       "66d56444054e0210",
       "aee12bd7a36bc38f",
       "06cc65773a9d7dc8",
@@ -101,7 +99,9 @@
       "4e5f91c73e7e09f2",
       "b6de72abbf11ffb5",
       "b79e9760012dbe97",
-      "d35f20d79c1bb65c"
+      "d35f20d79c1bb65c",
+      "5f434dd768a00c09",
+      "e8be996e74e11ed5"
     ],
     "Pokemon Information": [
       "249058a06c33d27a",
@@ -614,8 +614,6 @@
       "f87fbf7b28917db6"
     ],
     "twitter_UniteVids": [
-      "55031ce6c02ab119",
-      "333a6aac9f844843",
       "69d38cfc45cf0240",
       "c00955ae000c99f4",
       "274514d0cf66efa6",
@@ -713,7 +711,9 @@
       "1d73edf11be7684e",
       "d65794faf9b90c46",
       "deaf552a96c0ba61",
-      "faf67e4f8738d1f8"
+      "faf67e4f8738d1f8",
+      "f5d2e5286426b778",
+      "38f434a828df29c1"
     ],
     "twitter_pokerapidinfo": [
       "7d3e4259ed1b2977",
@@ -905,7 +905,6 @@
       "71e303bba0b8abe9"
     ],
     "PokeBeach": [
-      "db2da8f3a4466a97",
       "11832975f47e09e6",
       "a74ff3641ba386f8",
       "5d767c434457e69b",
@@ -1004,7 +1003,8 @@
       "0032471153a5e9d7",
       "cb3a71bc39f8d0de",
       "f5e6efe9016deb4f",
-      "fb2f1af4a4fa7659"
+      "fb2f1af4a4fa7659",
+      "48c19040b83c0db4"
     ],
     "玩具人 寶可夢": [
       "a22b107ab3249193",
