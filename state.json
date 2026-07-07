@@ -2,8 +2,6 @@
   "last_seen": {},
   "seen_items": {
     "Pokemon GO Hub": [
-      "1a28e355b8cd2155",
-      "93594403b6b31d29",
       "619c1143ac387749",
       "4d838b054721f7e5",
       "66d56444054e0210",
@@ -101,10 +99,11 @@
       "9f4b553dfcf01f0c",
       "d5d41a45047f63a0",
       "4e5f91c73e7e09f2",
-      "b6de72abbf11ffb5"
+      "b6de72abbf11ffb5",
+      "b79e9760012dbe97",
+      "d35f20d79c1bb65c"
     ],
     "Pokemon Information": [
-      "5a6ece178c5f6df1",
       "249058a06c33d27a",
       "163babb5eb1d4d5c",
       "4484e3579c11b9ac",
@@ -203,10 +202,10 @@
       "a70ee81b6f010aaa",
       "7614db6a406caa55",
       "98726adff27efe8a",
-      "d23e4f3d3dc4bf5c"
+      "d23e4f3d3dc4bf5c",
+      "c094f88024925008"
     ],
     "Serebii.net": [
-      "db082a9d75636ac0",
       "e3c1699ed5b9216e",
       "1c303f0a9b24c388",
       "5e8a78c26b027eb9",
@@ -305,7 +304,8 @@
       "56443ea83bf0d7de",
       "1031e8ccaeee5d07",
       "1b806b0d0ba4d4b6",
-      "1bd14f0f216d926d"
+      "1bd14f0f216d926d",
+      "3fcd277224427134"
     ],
     "twitter_PokemonGoApp": [
       "f55dc8390d3b617a",
@@ -716,9 +716,6 @@
       "deaf552a96c0ba61"
     ],
     "twitter_pokerapidinfo": [
-      "70c256d5bffa82a0",
-      "5f0b1f946fa33a1e",
-      "7ed25969b52edb33",
       "7bc0f26ff7c77565",
       "bd855964195ec224",
       "7d3e4259ed1b2977",
@@ -815,7 +812,10 @@
       "98941880b0d3e9e8",
       "38f926676444c2bc",
       "da2fab9536f52256",
-      "f588635c85d458de"
+      "f588635c85d458de",
+      "e414277293161401",
+      "83b4cff9ddc19be5",
+      "cbff8388d7951137"
     ],
     "twitter_pokepoke_GW": [
       "06940b9c60614655",
@@ -905,7 +905,6 @@
       "71e303bba0b8abe9"
     ],
     "PokeBeach": [
-      "0e403241d937c7bc",
       "db2da8f3a4466a97",
       "11832975f47e09e6",
       "a74ff3641ba386f8",
@@ -1004,7 +1003,8 @@
       "b4b19b142df5bff7",
       "0032471153a5e9d7",
       "cb3a71bc39f8d0de",
-      "f5e6efe9016deb4f"
+      "f5e6efe9016deb4f",
+      "fb2f1af4a4fa7659"
     ],
     "玩具人 寶可夢": [
       "a22b107ab3249193",
