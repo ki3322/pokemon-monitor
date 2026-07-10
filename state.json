@@ -2,7 +2,6 @@
   "last_seen": {},
   "seen_items": {
     "Pokemon GO Hub": [
-      "b5c5f29eda0db61d",
       "b13b75c50ea1b848",
       "53a183af964dd0a6",
       "9b99c364c34432e2",
@@ -101,11 +100,10 @@
       "56ff9194f57ff318",
       "31bd3c8e969dffc7",
       "cd00a7eba54e0c70",
-      "672595cb562b4e0c"
+      "672595cb562b4e0c",
+      "08441b6c17424c54"
     ],
     "Pokemon Information": [
-      "4484e3579c11b9ac",
-      "b51dd26c904d8659",
       "d6fb5f574a2a4774",
       "d8c1672659fe8f65",
       "f7ba2109f02bafac",
@@ -203,7 +201,9 @@
       "d23e4f3d3dc4bf5c",
       "c094f88024925008",
       "e98c2030a4276d84",
-      "fe1274c920ef0b55"
+      "fe1274c920ef0b55",
+      "72fb698ae6bbd261",
+      "5e8d8aa9705c2bdb"
     ],
     "Serebii.net": [
       "9e1fa6d9870405f9",
@@ -410,8 +410,6 @@
       "b96d16ccfa8e98d7"
     ],
     "twitter_Zabi_pokeka": [
-      "46cba45db6704acd",
-      "4aa885220fb588be",
       "805866ec46382348",
       "6d60586718436dbb",
       "de9f18ddc457ded9",
@@ -509,10 +507,11 @@
       "934b1fd69f5aa222",
       "c7cd72dd23ca7877",
       "1b2ca992520a89f8",
-      "cb1ca25fd79fb650"
+      "cb1ca25fd79fb650",
+      "81dea4f851fe4988",
+      "09b6ceda3ac04aba"
     ],
     "twitter_pokecamatomeru": [
-      "d965d7255a577eb2",
       "b8648cbbc4469533",
       "d2446986fb89aa63",
       "a787f24d7fe3be25",
@@ -611,7 +610,8 @@
       "6eb1a73535e55a12",
       "9955bf2bf5dd8f73",
       "36c93efdb075d0d2",
-      "9d25686b8b7910fb"
+      "9d25686b8b7910fb",
+      "68e44e238c530df8"
     ],
     "twitter_UniteVids": [
       "7e76c95a9319e2b4",
@@ -716,7 +716,6 @@
       "d8577b8240dd5db3"
     ],
     "twitter_pokerapidinfo": [
-      "e5c67a3ccf1639db",
       "01cc46529903860a",
       "49a375c0a8b7fde7",
       "fb92ec158a2785fb",
@@ -815,7 +814,8 @@
       "e010d057da0cf550",
       "7108a7a86b035b40",
       "32f9a7d87bed8dbe",
-      "19a067a2ad3f505c"
+      "19a067a2ad3f505c",
+      "1f68a090501c4670"
     ],
     "twitter_pokepoke_GW": [
       "06940b9c60614655",
@@ -903,7 +903,8 @@
       "2751d2b3e0e561ff",
       "d928ce880f978005",
       "71e303bba0b8abe9",
-      "b83f8a9213f52302"
+      "b83f8a9213f52302",
+      "6afadecbbfb2de6e"
     ],
     "PokeBeach": [
       "8ed7733ced870b4e",
