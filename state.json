@@ -2,8 +2,6 @@
   "last_seen": {},
   "seen_items": {
     "Pokemon GO Hub": [
-      "3953b77c6c12f9d4",
-      "d0cb9961b6f837d8",
       "123ff8ff40fb299d",
       "cdfb08e53d579fca",
       "e0c141ca111482cd",
@@ -101,7 +99,9 @@
       "c23b28256964d06f",
       "cc4239540d7de294",
       "8ce947bb305dcf9d",
-      "a34ef28da3060ad1"
+      "a34ef28da3060ad1",
+      "d160ea8761bedeef",
+      "5f95fa3875629a69"
     ],
     "Pokemon Information": [
       "d581ba55a5d79e39",
@@ -410,7 +410,6 @@
       "7f0e7cb196f239bb"
     ],
     "twitter_Zabi_pokeka": [
-      "1d15a709e044ab95",
       "584779794d5b6077",
       "823802e316802a3d",
       "6d85b47a9ce07a3e",
@@ -509,10 +508,10 @@
       "46597e7e0489dd15",
       "e25c163a39cb61ec",
       "af121fbbf6b0ed0e",
-      "d30780d6edf5e32e"
+      "d30780d6edf5e32e",
+      "8245753fcca62eed"
     ],
     "twitter_pokecamatomeru": [
-      "5a98e9f8ff996b2e",
       "6ed6ac2c77d5e811",
       "d20c0d74efdafed2",
       "2fefdc0d43febde1",
@@ -611,10 +610,10 @@
       "30017062c7a5c102",
       "0710c4854eeabb31",
       "bff989c32397bed3",
-      "2d1513502ca0c380"
+      "2d1513502ca0c380",
+      "3afba312c0c9436f"
     ],
     "twitter_UniteVids": [
-      "7881969dcd05f0da",
       "d8c44e6de47fcbe7",
       "c7cc0909f88ec234",
       "b3d34d5c6bd91da5",
@@ -713,10 +712,10 @@
       "9767fc98f2ad4291",
       "d8b100072f6bb61a",
       "d5fdcf3b404ed192",
-      "a1286917f4dcda86"
+      "a1286917f4dcda86",
+      "76a61d2ab828c52c"
     ],
     "twitter_pokerapidinfo": [
-      "5833ffe8dd8f611e",
       "78db5ae2e8f43159",
       "67072c93471fbda5",
       "e3d29a987212a4a6",
@@ -815,7 +814,8 @@
       "50a3925aff290bb6",
       "19e22bc9066f9fd2",
       "20087e5ed9211143",
-      "6f583cc97ebc2774"
+      "6f583cc97ebc2774",
+      "84e7d70dc95b79f3"
     ],
     "twitter_pokepoke_GW": [
       "06940b9c60614655",
@@ -916,7 +916,6 @@
       "dd91cd8924b66090"
     ],
     "PokeBeach": [
-      "8ff6f9307b078952",
       "af9f5006015e6c6c",
       "2e15ba5ec627e4a2",
       "182bd191dbd55319",
@@ -1015,7 +1014,8 @@
       "449d1dd154029e18",
       "72e302414ae43d0e",
       "58b35c6d80628e82",
-      "a1b446f86fabe270"
+      "a1b446f86fabe270",
+      "a894d41e4a2e8db1"
     ],
     "玩具人 寶可夢": [
       "307a5c21f2b0e9af",
