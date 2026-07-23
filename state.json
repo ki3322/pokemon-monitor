@@ -2,7 +2,6 @@
   "last_seen": {},
   "seen_items": {
     "Pokemon GO Hub": [
-      "ceb8029ed99b3fcb",
       "9d964e835a374b2c",
       "7e0c6b4b4120dcec",
       "2b3a74ba9c453445",
@@ -101,7 +100,8 @@
       "824cfca333f3f377",
       "014f1865ec7a9f6d",
       "2d8d58d51055286c",
-      "3b45865881247f2c"
+      "3b45865881247f2c",
+      "7be800d05fa8d3ef"
     ],
     "Pokemon Information": [
       "14d044518abea6c9",
@@ -206,7 +206,6 @@
       "61528cda648e83e9"
     ],
     "Serebii.net": [
-      "21e25adf8f6f82ca",
       "372492b0c59ba3e6",
       "dd0bcc92689017ae",
       "4cc8f74e14c89d7e",
@@ -305,7 +304,8 @@
       "e48985854706f269",
       "8eac179a67c4c51e",
       "c100015427b252c6",
-      "921b314000bfbb58"
+      "921b314000bfbb58",
+      "c046dff7a721e9f6"
     ],
     "twitter_PokemonGoApp": [
       "f4b1528566262ca9",
@@ -512,15 +512,6 @@
       "35377d0084527b9b"
     ],
     "twitter_pokecamatomeru": [
-      "6631d17c0f49f6c1",
-      "720218c3ee6e807e",
-      "cdc461e7b8abca98",
-      "4bfcfc2e3bef2371",
-      "ad4ae5e81353bb49",
-      "df98fb62ff64061a",
-      "83dc3942c61f3b29",
-      "2f273fd20fada610",
-      "4fc6995167c7298a",
       "4352cf9e8f1e51aa",
       "5283d459dcf8d20c",
       "5e0f6fd0f1a8de44",
@@ -611,12 +602,18 @@
       "b0718367e6fb0351",
       "c441b9e3430146a8",
       "266ddb992d1c69ae",
-      "f61c70a668888990"
+      "f61c70a668888990",
+      "4bc0d8121f500081",
+      "8cfa16a897700322",
+      "0e1b7403dfecca94",
+      "3d6ed400506efbff",
+      "d03ce2e7c9553d88",
+      "1e337ccce5c5ffde",
+      "38b5699db34baac5",
+      "f76f0a35f7aa0ebb",
+      "22528606b0563534"
     ],
     "twitter_UniteVids": [
-      "ff1a544291842a9c",
-      "2dc1757154429730",
-      "201e86780a35f0b4",
       "378002b3f113418f",
       "f889131cc50917be",
       "2c1e303a48a306a8",
@@ -713,13 +710,12 @@
       "8f00f901c2b4e1e8",
       "3c813c303ba826ca",
       "5953d4dfa181288f",
-      "f42892371a17f1d5"
+      "f42892371a17f1d5",
+      "1ac1bb8c1a18d6b8",
+      "75131e16d3eb710e",
+      "1d9ac6f5923bac28"
     ],
     "twitter_pokerapidinfo": [
-      "15af45924e2a424c",
-      "c20203a6ded55655",
-      "edc229842c99d59f",
-      "ffdd2184ebb1fb66",
       "8e76d5c168e99ac0",
       "684dbeb7307c3008",
       "75ab73c7cca8a472",
@@ -815,7 +811,11 @@
       "37bdcafdcb8b5d7a",
       "bb07798c102ee5da",
       "1440a2f7d72a201d",
-      "3ca162748af585ac"
+      "3ca162748af585ac",
+      "2a0a2151cb01869f",
+      "8bab9f80bc2616b4",
+      "baf0b99f477a3b1c",
+      "2bf85f23da387bb5"
     ],
     "twitter_pokepoke_GW": [
       "06940b9c60614655",
@@ -917,7 +917,6 @@
       "aa3028aca9b01141"
     ],
     "PokeBeach": [
-      "a3a72aa1405dc606",
       "5469d7c9e2ab3ced",
       "e7642f096796445d",
       "33ae23a50c9a428d",
@@ -1016,7 +1015,8 @@
       "a894d41e4a2e8db1",
       "92d0b7331bd006af",
       "06fed8a501c65de7",
-      "7d9992d959932ca0"
+      "7d9992d959932ca0",
+      "c35e134fc61402fb"
     ],
     "玩具人 寶可夢": [
       "307a5c21f2b0e9af",
