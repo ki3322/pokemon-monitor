@@ -1,4 +1,11 @@
-from src.dashboard.stats import KIND_TWITTER, KIND_WEBSITE, Dashboard, DraftStat, GroupStat
+from src.dashboard.stats import (
+    KIND_TWITTER,
+    KIND_WEBSITE,
+    Dashboard,
+    DraftStat,
+    GroupStat,
+    NewsStat,
+)
 from src.notion import blocks as nb
 from src.notion import dashboard as nd
 from src.notion.ids import page_url, parse_page_id
@@ -198,6 +205,90 @@ class TestWarnings:
     def test_empty_dashboard_still_builds(self):
         blocks = nd.build_blocks(Dashboard("now"))
         assert blocks and all(b["type"] in b for b in blocks)
+
+
+def _news(count, selected=False, status="待處理", link="https://a.example/1"):
+    return tuple(
+        NewsStat(
+            title=f"新聞 {i}",
+            link=link,
+            source="Serebii.net",
+            status=status,
+            selected=selected,
+            days_old=0,
+        )
+        for i in range(count)
+    )
+
+
+def _table_rows(block):
+    return block["table"]["children"]
+
+
+class TestNewsBlocks:
+    def _dashboard(self, news):
+        return Dashboard("now", state_version=STATE_VERSION, notion_configured=True, news=news)
+
+    def test_two_tables_when_news_present(self):
+        blocks = nd.news_blocks(self._dashboard(_news(3, selected=True)))
+        assert _types(blocks).count("table") == 2  # 佇列 + 最近新聞
+
+    def test_title_links_to_source(self):
+        blocks = nd.news_blocks(self._dashboard(_news(1)))
+        table = next(b for b in blocks if b["type"] == "table")
+        title_cell = _table_rows(table)[1]["table_row"]["cells"][1]
+        assert title_cell[0]["text"]["link"] == {"url": "https://a.example/1"}
+
+    def test_missing_link_produces_no_link_key(self):
+        """Notion 的 link 不接受空字串。"""
+        blocks = nd.news_blocks(self._dashboard(_news(1, link="")))
+        table = next(b for b in blocks if b["type"] == "table")
+        title_cell = _table_rows(table)[1]["table_row"]["cells"][1]
+        assert "link" not in title_cell[0]["text"]
+
+    def test_queue_only_contains_selected_and_unfinished(self):
+        dashboard = Dashboard(
+            "now",
+            notion_configured=True,
+            news=_news(2, selected=True) + _news(3, selected=False),
+        )
+        queue_table = next(b for b in nd.news_blocks(dashboard) if b["type"] == "table")
+        assert len(_table_rows(queue_table)) == 1 + 2  # 表頭 + 兩則勾選的
+
+    def test_rows_capped_at_limit(self):
+        """回歸測試：表格的每一列都是區塊，超量會撞到單次 100 個區塊的上限。"""
+        blocks = nd.news_blocks(self._dashboard(_news(nd.NEWS_ROWS_LIMIT + 50)))
+        recent = [b for b in blocks if b["type"] == "table"][-1]
+        assert len(_table_rows(recent)) == 1 + nd.NEWS_ROWS_LIMIT
+
+    def test_note_reports_shown_count_not_total(self):
+        blocks = nd.news_blocks(self._dashboard(_news(nd.NEWS_ROWS_LIMIT + 5)))
+        assert f"顯示最近 {nd.NEWS_ROWS_LIMIT} 則" in _all_text(blocks)
+
+    def test_empty_news_explains_itself(self):
+        assert "等下一輪監控寫入" in _all_text(nd.news_blocks(self._dashboard(())))
+
+    def test_query_failure_and_unconfigured_differ(self):
+        failed = _all_text(nd.news_blocks(Dashboard("now", notion_configured=True, news=None)))
+        unset = _all_text(nd.news_blocks(Dashboard("now", notion_configured=False, news=None)))
+        assert "查詢失敗" in failed
+        assert "查詢失敗" not in unset
+
+    def test_full_page_stays_within_one_request(self):
+        """含新聞的整頁仍要能一次送出，否則得處理巢狀區塊的分批。"""
+        dashboard = Dashboard(
+            "now",
+            state_version=STATE_VERSION,
+            notion_configured=True,
+            groups=DASHBOARD.groups,
+            drafts=DASHBOARD.drafts,
+            news=_news(30, selected=True),
+        )
+        blocks = nd.build_blocks(dashboard)
+        nested = sum(
+            len(_table_rows(b)) if b["type"] == "table" else 0 for b in blocks
+        )
+        assert len(blocks) + nested <= nb.MAX_BLOCKS_PER_REQUEST
 
 
 class FakeClient:

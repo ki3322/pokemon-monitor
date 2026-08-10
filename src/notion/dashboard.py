@@ -7,7 +7,7 @@ Notion 沒有自訂 CSS，能表達設計語言的只有色塊、標題階層與
 """
 from typing import Dict, List, Optional, Sequence
 
-from src.dashboard.stats import Dashboard, DraftStat, GroupStat
+from src.dashboard.stats import Dashboard, DraftStat, GroupStat, NewsStat
 from src.notion import blocks as nb
 from src.notion.client import NotionClient
 from src.state import MAX_ITEMS_PER_SOURCE, STATE_VERSION
@@ -28,6 +28,10 @@ METER_EMPTY = "░"
 # Notion 的分欄至少要兩欄，欄數過多會擠到看不清楚
 MIN_COLUMNS = 2
 MAX_COLUMNS = 5
+
+# 新聞表格的列數上限。表格的每一列都是一個區塊，兩張表加上其他區塊
+# 必須留在單次請求的 100 個區塊以內。
+NEWS_ROWS_LIMIT = 20
 
 
 def meter(count: int, ceiling: int = MAX_ITEMS_PER_SOURCE, cells: int = METER_CELLS) -> str:
@@ -149,6 +153,54 @@ def draft_blocks(drafts: Sequence[DraftStat]) -> List[Dict]:
     return [nb.text_table(rows)]
 
 
+def news_table(items: Sequence[NewsStat], empty_text: str) -> List[Dict]:
+    """新聞表格。標題做成可點的連結，直接跳到來源原文。"""
+    if not items:
+        return [nb.paragraph_block(empty_text, color=MUTED)]
+
+    rows = [[nb.rich_text(head) for head in ("新鮮度", "標題", "來源", "狀態")]]
+    rows += [
+        [
+            nb.rich_text(item.freshness),
+            nb.rich_text(item.title or "（無標題）", href=item.link),
+            nb.rich_text(item.source),
+            nb.rich_text(item.status or "—"),
+        ]
+        for item in items[:NEWS_ROWS_LIMIT]
+    ]
+    return [nb.rich_table(rows)]
+
+
+def _recent_note(dashboard: Dashboard) -> str:
+    shown = min(len(dashboard.news or ()), NEWS_ROWS_LIMIT)
+    note = f"顯示最近 {shown} 則"
+    counts = " · ".join(f"{status} {count}" for status, count in dashboard.news_status_counts)
+    return f"{note}｜{counts}" if counts else note
+
+
+def news_blocks(dashboard: Dashboard) -> List[Dict]:
+    """待撰稿佇列與最近新聞。
+
+    沒抓到資料時兩種原因的訊息必須不同，使用者才知道要修什麼。
+    """
+    if dashboard.news is None:
+        reason = (
+            "Notion 查詢失敗，本次無法顯示新聞列表，請稍後重新產生。"
+            if dashboard.notion_configured
+            else "產生這頁的環境沒有完整的 Notion 設定，因此讀不到資料庫的新聞。"
+        )
+        return [nb.heading_block("新聞", level=2), nb.callout_block(reason, emoji="🔌", color=MUTED)]
+
+    return [
+        nb.heading_block("待撰稿佇列", level=2),
+        nb.paragraph_block("已勾選「寫成文章」且未完成", color=MUTED),
+        *news_table(dashboard.queue, "沒有勾選待寫的項目。勾選下方任一則就會出現在這裡。"),
+        nb.heading_block("最近新聞", level=2),
+        nb.paragraph_block(_recent_note(dashboard), color=MUTED),
+        *news_table(dashboard.news, "資料庫還沒有新聞，等下一輪監控寫入。"),
+    ]
+
+
 def build_blocks(dashboard: Dashboard) -> List[Dict]:
     """組出整頁的 Notion 區塊。"""
     return [
@@ -161,6 +213,9 @@ def build_blocks(dashboard: Dashboard) -> List[Dict]:
         nb.heading_block("Twitter 帳號", level=2),
         nb.paragraph_block("透過 RSSHub 取得", color=MUTED),
         *group_table(dashboard.twitter_groups, "設定檔裡沒有 Twitter 帳號。"),
+        nb.divider_block(),
+        *news_blocks(dashboard),
+        nb.divider_block(),
         nb.heading_block("撰稿進度", level=2),
         *draft_blocks(dashboard.drafts),
         nb.divider_block(),
