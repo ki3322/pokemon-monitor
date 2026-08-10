@@ -218,6 +218,36 @@ def command_notion_upgrade(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_notion_backfill(args: argparse.Namespace) -> int:
+    """把來源目前看得到的內容補進 Notion（不碰 Telegram，不改投遞記錄）。"""
+    from config import RSS_SOURCES, SCRAPE_SOURCES, TWITTER_ACCOUNTS
+    from src.monitors.rss_monitor import get_rss_items, get_twitter_items
+    from src.monitors.web_scraper import get_scraped_items
+    from src.notion.backfill import NotionBackfill, collect_items
+
+    client = NotionClient()
+    if not _require_notion(client):
+        return 1
+
+    print("抓取所有來源...")
+    collected, failures = collect_items(
+        RSS_SOURCES, SCRAPE_SOURCES, TWITTER_ACCOUNTS,
+        get_rss_items, get_scraped_items, get_twitter_items,
+    )
+    print(f"共 {len(collected)} 則" + (f"，{len(failures)} 個來源抓取失敗：{'、'.join(failures)}" if failures else ""))
+
+    if args.dry_run:
+        print("\n--dry-run：以下是「會」建立的項目，實際不寫入\n")
+
+    created, skipped, failed = NotionBackfill(client=client).run(collected, dry_run=args.dry_run)
+
+    verb = "會建立" if args.dry_run else "已建立"
+    print(f"\n{verb} {created} 則，略過 {skipped} 則（資料庫已有），失敗 {failed} 則。")
+    if failures:
+        print("抓取失敗的來源可以稍後重跑，重複執行不會建立重複項目。")
+    return 1 if failed else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="src.cli", description="PokemonHubs 撰稿流程")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -261,6 +291,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="順便把既有項目的「原始標題」補上（只填空的，不覆寫）",
     )
     upgrade_parser.set_defaults(func=command_notion_upgrade)
+
+    backfill_parser = subparsers.add_parser(
+        "notion-backfill",
+        help="把來源目前看得到的內容補進 Notion（初始化那一輪跳過的既有文章）",
+    )
+    backfill_parser.add_argument(
+        "--dry-run", action="store_true", help="只列出會建立哪些項目，不實際寫入"
+    )
+    backfill_parser.set_defaults(func=command_notion_backfill)
 
     return parser
 
