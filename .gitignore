@@ -21,3 +21,11 @@ ENV/
 # OS
 .DS_Store
 Thumbs.db
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# 撰稿工作目錄
+drafts/
