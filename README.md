@@ -127,6 +127,44 @@ python -m src.cli publish <page_id> --file drafts/x.md    # 回寫 Notion
 
 「狀態＝已完成」只代表稿子寫完；有沒有真的貼上 WordPress 看「上稿」欄，它由 WordPress 網址自動推導，不必再手動維護第二個狀態。
 
+### 刪除不會用的新聞
+
+把不會寫的新聞狀態改成「略過」，再執行：
+
+```bash
+python -m src.cli notion-cleanup --dry-run   # 先看會刪哪些
+python -m src.cli notion-cleanup
+```
+
+這是**可還原的軟刪除**：頁面進 Notion 垃圾桶，30 天內都能救回。
+Notion API 沒有永久刪除的端點，要真的清空只能在 Notion 介面上操作。
+
+刪掉不會讓監控把同一則再抓回來——去重靠 `state.json` 的投遞記錄，
+與資料庫裡有沒有那一頁無關。
+
+#### 在 Notion 加一鍵刪除按鈕（手動，30 秒）
+
+Notion 的按鈕屬性**無法由 API 建立**，要自己在介面上加：
+
+1. 資料庫右側 `+` → 新增屬性 → 型別選 **按鈕（Button）**
+2. 名稱填「刪除」
+3. 動作選 **刪除頁面（Delete page）**，或選 **編輯屬性 → 狀態 → 略過**
+   （後者搭配上面的指令批次清除，誤刪時還有一次反悔機會）
+4. 完成
+
+### 補回初始化跳過的既有文章
+
+新啟用 Notion 時，第一輪只會把現況標記為已投遞而不建立頁面（避免一次湧入整頁）。
+那些既有文章不會自動進資料庫，要補的話執行：
+
+```bash
+python -m src.cli notion-backfill --dry-run   # 先看會建立哪些
+python -m src.cli notion-backfill
+```
+
+只補 Notion，不碰 Telegram，也不改投遞記錄，所以重跑監控不會重複通知。
+以「項目ID」去重，可以重複執行。
+
 ### 升級既有資料庫
 
 欄位定義變更後，用這個指令把既有資料庫補齊（**只補不改**，可重複執行）：
