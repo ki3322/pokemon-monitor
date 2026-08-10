@@ -75,6 +75,26 @@ class TestBuildGroups:
         groups = build_groups(RSS, [], [], {"telegram": "not-a-dict"})
         assert groups[0].tracked == 0
 
+    def test_group_initialized_with_zero_items_counts_as_bootstrapped(self):
+        """回歸測試：初始化當下若沒有符合時間範圍的內容，會留下空清單。
+
+        那已經初始化完成，下一輪就會正常投遞；判斷必須看鍵存不存在，
+        看筆數會把它誤報成「待初始化」，使用者以為監控壞了。
+        """
+        groups = build_groups(RSS, [], [], {"telegram": {"GO Hub": []}})
+        assert groups[0].tracked == 0
+        assert groups[0].is_bootstrapped
+
+    def test_group_absent_from_records_is_not_bootstrapped(self):
+        groups = build_groups(RSS, [], [], {"telegram": {}})
+        assert not groups[0].is_bootstrapped
+
+    def test_initialization_tracked_per_sink(self):
+        """新啟用的目的地要能看出自己還沒初始化，即使另一個已經有記錄。"""
+        groups = build_groups(RSS, [], [], {"telegram": {"GO Hub": ["a"]}})
+        assert groups[0].telegram_initialized
+        assert not groups[0].notion_initialized
+
 
 class TestGroupStat:
     def test_tracked_takes_larger_sink(self):

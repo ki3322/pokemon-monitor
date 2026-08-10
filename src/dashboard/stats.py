@@ -24,6 +24,11 @@ class GroupStat:
     members: Tuple[str, ...] = ()
     telegram: int = 0
     notion: int = 0
+    # 是否已經有這個群組的記錄。必須看「鍵存不存在」而不是「筆數大於 0」：
+    # 初始化當下若來源恰好沒有符合時間範圍的內容，會建立一個空清單，
+    # 那已經是初始化完成，下一輪就會正常投遞了。
+    telegram_initialized: bool = False
+    notion_initialized: bool = False
 
     @property
     def tracked(self) -> int:
@@ -37,7 +42,7 @@ class GroupStat:
 
     @property
     def is_bootstrapped(self) -> bool:
-        return self.telegram > 0 or self.notion > 0
+        return self.telegram_initialized or self.notion_initialized
 
 
 @dataclass(frozen=True)
@@ -198,6 +203,8 @@ def build_groups(
             members=members[(group, kind)],
             telegram=_count(telegram, group),
             notion=_count(notion, group),
+            telegram_initialized=group in telegram,
+            notion_initialized=group in notion,
         )
         for group, kind in order
     )

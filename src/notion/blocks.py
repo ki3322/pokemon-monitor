@@ -153,10 +153,13 @@ def column_list_block(columns: Sequence[Sequence[Dict]]) -> Dict:
     }
 
 
-def text_table(rows: Sequence[Sequence[str]], has_header: bool = True) -> Dict:
-    """用純文字列建立表格。每列的儲存格數量會對齊第一列。"""
+def rich_table(rows: Sequence[Sequence[List[Dict]]], has_header: bool = True) -> Dict:
+    """用已經渲染好的 rich_text 儲存格建立表格。
+
+    每列的儲存格數量會對齊第一列——Notion 會拒絕寬度不一致的列。
+    """
     width = len(rows[0]) if rows else 0
-    normalized = [tuple(list(row)[:width]) + ("",) * (width - len(row)) for row in rows]
+    normalized = [list(row)[:width] + [[] for _ in range(width - len(row))] for row in rows]
 
     return {
         "object": "block",
@@ -166,15 +169,16 @@ def text_table(rows: Sequence[Sequence[str]], has_header: bool = True) -> Dict:
             "has_column_header": has_header,
             "has_row_header": False,
             "children": [
-                {
-                    "object": "block",
-                    "type": "table_row",
-                    "table_row": {"cells": [rich_text(cell) for cell in row]},
-                }
-                for row in normalized
+                {"object": "block", "type": "table_row", "table_row": {"cells": cells}}
+                for cells in normalized
             ],
         },
     }
+
+
+def text_table(rows: Sequence[Sequence[str]], has_header: bool = True) -> Dict:
+    """用純文字列建立表格。不需要連結時用這個。"""
+    return rich_table([[rich_text(cell) for cell in row] for row in rows], has_header)
 
 
 def divider_block() -> Dict:

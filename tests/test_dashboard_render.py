@@ -126,6 +126,24 @@ class TestRenderPage:
     def test_uninitialized_group_flagged(self):
         assert "待初始化" in self.HTML
 
+    def test_initialized_but_empty_group_shows_running(self):
+        """回歸測試：初始化後 0 則的來源是「運作中」，不是「待初始化」。"""
+        html = render_page(
+            Dashboard(
+                "now",
+                groups=(
+                    GroupStat(
+                        "Pokemon GO Hub",
+                        KIND_WEBSITE,
+                        telegram_initialized=True,
+                        notion_initialized=True,
+                    ),
+                ),
+            )
+        )
+        assert "運作中" in html
+        assert "待初始化" not in html
+
     def test_draft_status_rendered(self):
         assert "3b8d2e5bf409" in self.HTML
         assert "已成稿" in self.HTML
