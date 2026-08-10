@@ -5,7 +5,12 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
 # RSSHub 實例 (用於 Twitter/X 監控)
-RSSHUB_INSTANCE = os.environ.get("RSSHUB_INSTANCE", "https://pokemonhubs.zeabur.app").rstrip("/")
+# 必須用 or 而不是 os.environ.get 的預設值：GitHub Actions 在
+# ${{ vars.RSSHUB_INSTANCE }} 未定義時仍會把環境變數設成「空字串」，
+# 空字串不是 None，預設值永遠不會生效，網址就變成 /twitter/user/xxx 而無 scheme。
+RSSHUB_INSTANCE = (
+    os.environ.get("RSSHUB_INSTANCE", "").strip() or "https://pokemonhubs.zeabur.app"
+).rstrip("/")
 
 # Notion 設定 (選填；未設定時自動略過 Notion 同步)
 NOTION_TOKEN = os.environ.get("NOTION_TOKEN", "")
