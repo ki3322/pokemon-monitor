@@ -19,6 +19,7 @@ from src.dashboard.render import render_page
 from src.notion.client import NotionClient
 from src.notion.dashboard import NotionDashboard
 from src.notion.ids import page_url, parse_page_id
+from src.notion import schema
 from src.notion.reader import NotionReader, SelectedItem, to_selected_item
 from src.notion.upgrade import NotionUpgrade
 from src.notion.writer import NotionWriter
@@ -248,6 +249,31 @@ def command_notion_backfill(args: argparse.Namespace) -> int:
     return 1 if failed else 0
 
 
+def command_notion_cleanup(args: argparse.Namespace) -> int:
+    """把標為「略過」的新聞移到 Notion 垃圾桶。"""
+    from src.notion.cleanup import NotionCleanup
+
+    client = NotionClient()
+    if not _require_notion(client):
+        return 1
+
+    result = NotionCleanup(client).run(dry_run=args.dry_run)
+    if result is None:
+        return 1
+
+    removed, failed = result
+    if not removed and not failed:
+        print(f"沒有標為「{schema.STATUS_SKIPPED}」的項目。")
+        print(f"在 Notion 把不要的新聞狀態改成「{schema.STATUS_SKIPPED}」，再執行這個指令。")
+        return 0
+
+    verb = "會刪除" if args.dry_run else "已移到垃圾桶"
+    print(f"\n{verb} {removed} 則，失敗 {failed} 則。")
+    if not args.dry_run and removed:
+        print("這是可還原的軟刪除，30 天內都能從 Notion 垃圾桶救回。")
+    return 1 if failed else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="src.cli", description="PokemonHubs 撰稿流程")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -300,6 +326,15 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run", action="store_true", help="只列出會建立哪些項目，不實際寫入"
     )
     backfill_parser.set_defaults(func=command_notion_backfill)
+
+    cleanup_parser = subparsers.add_parser(
+        "notion-cleanup",
+        help=f"把狀態為「{schema.STATUS_SKIPPED}」的新聞移到 Notion 垃圾桶（可還原）",
+    )
+    cleanup_parser.add_argument(
+        "--dry-run", action="store_true", help="只列出會刪除哪些項目，不實際刪除"
+    )
+    cleanup_parser.set_defaults(func=command_notion_cleanup)
 
     return parser
 
