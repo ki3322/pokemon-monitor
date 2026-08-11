@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  勾選「寫成文章」後自動撰稿的排程。
+
+  安裝方式見 README「勾選後自動撰稿」。這份檔案是範本，
+  安裝時複製到 ~/Library/LaunchAgents/ 再 launchctl load。
+
+  刻意不放任何秘密：憑證由 watch_once_launchd.sh 從 Keychain 取出。
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.pokemon-monitor.watch-articles</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/KIP/Projects/pokemon-monitor/scripts/watch_once_launchd.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/KIP/Projects/pokemon-monitor</string>
+
+    <!--
+      每 15 分鐘跑一輪。用 StartInterval 而非 StartCalendarInterval：
+      機器睡眠期間錯過的排程，launchd 會在喚醒後補跑一次。
+    -->
+    <key>StartInterval</key>
+    <integer>900</integer>
+
+    <!-- 載入（開機／登入）時先跑一輪，不必等滿 15 分鐘 -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!--
+      這兩個只收 launchd 層級的錯誤（例如腳本根本起不來）。
+      實際撰稿過程的日誌在 drafts/watch.log。
+    -->
+    <key>StandardOutPath</key>
+    <string>/Users/KIP/Projects/pokemon-monitor/drafts/launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/KIP/Projects/pokemon-monitor/drafts/launchd.err.log</string>
+
+    <!-- 背景工作：不搶前景資源，撰稿慢一點沒關係 -->
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>Nice</key>
+    <integer>5</integer>
+</dict>
+</plist>

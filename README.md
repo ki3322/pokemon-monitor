@@ -125,6 +125,48 @@ scripts/watch_articles.sh
 */15 * * * * cd /path/to/pokemon-monitor && INTERVAL=0 scripts/watch_articles.sh --once
 ```
 
+#### 掛成 LaunchAgent（macOS 建議做法）
+
+cron 在機器睡眠時錯過的排程不會補跑，LaunchAgent 的 `StartInterval` 會。
+憑證放 Keychain，plist 裡不留任何秘密。
+
+**1. 把憑證存進 Keychain**（`-w` 不帶值會提示輸入，不會回顯、也不會進 shell history）：
+
+```bash
+security add-generic-password -a "$USER" -s pokemon-monitor-notion-token -w
+security add-generic-password -a "$USER" -s pokemon-monitor-notion-database -w
+```
+
+第一個貼 `NOTION_TOKEN`（`ntn_...`），第二個貼 `NOTION_DATABASE_ID`。
+
+**2. 安裝並啟動**：
+
+```bash
+cp scripts/com.pokemon-monitor.watch-articles.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.pokemon-monitor.watch-articles.plist
+```
+
+載入時會立刻跑一輪，之後每 15 分鐘一次。改頻率就編輯 plist 的 `StartInterval`
+（秒），然後 `launchctl unload` 再 `load` 一次。
+
+**檢查是否正常**：
+
+```bash
+launchctl list | grep pokemon-monitor     # 有列出即已載入
+tail -f drafts/watch.log                  # 撰稿日誌
+cat drafts/launchd.err.log                # 腳本起不來時的錯誤
+```
+
+**停用**：
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.pokemon-monitor.watch-articles.plist
+```
+
+plist 裡的路徑是絕對路徑（launchd 的要求）。專案搬家後要同步修改 plist 的
+`ProgramArguments`、`WorkingDirectory` 與兩個 log 路徑。`scripts/watch_once_launchd.sh`
+裡的 `PYTHON_BIN` 也要指向裝有 `requirements.txt` 的直譯器。
+
 **寫好的稿子狀態停在「撰寫中」**，不會自動標成已完成 —— 自動撰稿最大的風險是事實錯誤
 （來源網站本身就可能寫錯），一定要有人看過。審完再手動改成「已完成」。
 
