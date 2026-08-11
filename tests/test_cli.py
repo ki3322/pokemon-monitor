@@ -4,6 +4,7 @@ import pytest
 
 from src import cli
 from src.article.brief import article_path, brief_path, build_brief, slug_for, write_brief
+from src.notion import schema
 from src.notion.reader import SelectedItem
 
 ITEM = SelectedItem(
@@ -101,9 +102,12 @@ class FakeWriter:
         self.ok = ok
         self.calls = []
 
-    def publish(self, page_id, markdown, link="", wordpress_url="", replace=True):
+    def publish(self, page_id, markdown, link="", wordpress_url="", replace=True, status=""):
         self.calls.append(
-            {"page_id": page_id, "markdown": markdown, "link": link, "replace": replace}
+            {
+                "page_id": page_id, "markdown": markdown, "link": link,
+                "replace": replace, "status": status,
+            }
         )
         return self.ok
 
@@ -216,6 +220,23 @@ class TestPublishCommand:
         cli.main(["publish", "p", "--file", self._article(tmp_path), "--append"])
 
         assert writer.calls[0]["replace"] is False
+
+    def test_default_publish_marks_done(self, monkeypatch, tmp_path, configured):
+        writer = FakeWriter()
+        monkeypatch.setattr(cli, "NotionWriter", lambda client: writer)
+
+        cli.main(["publish", "p", "--file", self._article(tmp_path)])
+
+        assert writer.calls[0]["status"] == schema.STATUS_DONE
+
+    def test_draft_flag_marks_writing_for_review(self, monkeypatch, tmp_path, configured):
+        """自動撰稿的稿子要停在「撰寫中」，人工審過才算完成。"""
+        writer = FakeWriter()
+        monkeypatch.setattr(cli, "NotionWriter", lambda client: writer)
+
+        cli.main(["publish", "p", "--file", self._article(tmp_path), "--draft"])
+
+        assert writer.calls[0]["status"] == schema.STATUS_WRITING
 
     def test_explicit_link_used_without_lookup(self, monkeypatch, tmp_path, configured):
         writer = FakeWriter()

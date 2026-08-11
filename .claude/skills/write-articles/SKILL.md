@@ -47,14 +47,17 @@ python -m src.cli pending
 ### 3. 回寫 Notion
 
 ```bash
-python -m src.cli publish <page_id> --file drafts/<slug>.article.md
+python -m src.cli publish <page_id> --file drafts/<slug>.article.md --draft
 ```
+
+`--draft` 把狀態設為「撰寫中」而不是「已完成」，稿子停在等人審的位置。
+是使用者在互動中親自要求發布定稿時，才省略 `--draft`。
 
 `page_id` 取自該則的 brief 檔開頭。這會：
 
 - 清除頁面既有內容（避免重複發布疊加兩份）
 - 寫入來源連結、摺疊的 WordPress HTML 區塊、以及 Notion 原生排版的文章
-- 把頁面標題更新為定稿標題，狀態設為「已完成」
+- 把頁面標題更新為定稿標題，狀態設為「撰寫中」（帶 `--draft` 時）
 
 ### 4. 回報
 

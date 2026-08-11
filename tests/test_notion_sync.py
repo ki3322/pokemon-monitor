@@ -125,13 +125,23 @@ class TestSyncAddItem:
 
 
 class TestReader:
-    def test_filter_requires_checked_and_not_done(self):
+    def test_filter_requires_checked_and_still_pending(self):
+        """回歸測試：條件必須是「等於待處理」而不是「不等於已完成」。
+
+        自動撰稿把稿子標成「撰寫中」等人審；若條件寫成「不等於已完成」，
+        那篇下一輪仍然符合，會被無限重寫。
+        """
         conditions = pending_filter()["and"]
         assert {"property": schema.SELECTED, "checkbox": {"equals": True}} in conditions
         assert {
             "property": schema.STATUS,
-            "select": {"does_not_equal": schema.STATUS_DONE},
+            "select": {"equals": schema.STATUS_PENDING},
         } in conditions
+
+    def test_filter_excludes_writing_status(self):
+        serialized = str(pending_filter())
+        assert schema.STATUS_WRITING not in serialized
+        assert "does_not_equal" not in serialized
 
     def test_parses_page_into_selected_item(self):
         page = {
@@ -235,6 +245,16 @@ class TestWriter:
         assert client.deleted == ["old-1", "old-2"]
         assert client.appended
         assert client.updated[0][schema.STATUS]["select"]["name"] == schema.STATUS_DONE
+
+    def test_publish_can_stop_at_writing_for_review(self):
+        """自動撰稿的稿子必須停在「撰寫中」，不能自己標成已完成。"""
+        client = FakeNotionClient()
+        NotionWriter(client).publish("page-1", self.ARTICLE, status=schema.STATUS_WRITING)
+        assert client.updated[0][schema.STATUS]["select"]["name"] == schema.STATUS_WRITING
+
+    def test_draft_status_takes_the_page_out_of_the_queue(self):
+        """撰寫中不符合 pending_filter，所以不會被重複撿走。"""
+        assert schema.STATUS_WRITING != schema.STATUS_PENDING
 
     def test_publish_syncs_title_from_h1(self):
         client = FakeNotionClient()
