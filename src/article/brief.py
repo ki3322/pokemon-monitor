@@ -14,8 +14,14 @@ _UNSAFE_FILENAME = re.compile(r"[^0-9a-zA-Z._-]+")
 
 
 def slug_for(item: SelectedItem) -> str:
-    """由 page_id 產生穩定且安全的檔名前綴。"""
-    return _UNSAFE_FILENAME.sub("", item.page_id.replace("-", ""))[:12] or "untitled"
+    """由 page_id 產生穩定且安全的檔名前綴。
+
+    「絕對不能截短」：同一個資料庫、相近時間建立的 Notion 頁面，ID 前綴
+    幾乎完全相同（例如 3b8d2e5b-f409-81ef-… 與 3b8d2e5b-f409-81f0-…），
+    截成前 12 碼會讓不同文章共用同一個檔名，後寫的直接覆蓋前一篇，
+    甚至可能把 A 的稿件發布到 B 的頁面上。
+    """
+    return _UNSAFE_FILENAME.sub("", item.page_id.replace("-", "")) or "untitled"
 
 
 def brief_path(directory: str, item: SelectedItem) -> str:

@@ -16,14 +16,54 @@ ITEM = SelectedItem(
 )
 
 
+def _item(page_id):
+    return SelectedItem(
+        page_id=page_id, title="標題", link="https://a.example/1",
+        source="Serebii.net", category="文章", status="待處理",
+    )
+
+
 class TestBrief:
-    def test_slug_strips_dashes_and_caps_length(self):
-        slug = slug_for(ITEM)
-        assert "-" not in slug
-        assert len(slug) == 12
+    def test_slug_strips_dashes(self):
+        assert "-" not in slug_for(ITEM)
+
+    def test_slug_keeps_the_whole_page_id(self):
+        assert slug_for(ITEM) == ITEM.page_id.replace("-", "")
 
     def test_slug_is_stable(self):
         assert slug_for(ITEM) == slug_for(ITEM)
+
+    def test_pages_sharing_a_long_prefix_get_different_slugs(self):
+        """回歸測試：同一個資料庫相近時間建立的頁面，ID 前綴幾乎完全相同。
+
+        截短成前 12 碼會讓不同文章共用檔名——實機上這兩個真實 ID 就撞在
+        一起，後產生的 brief 直接蓋掉前一篇，稿件也可能被發布到錯的頁面。
+        """
+        a = _item("3b8d2e5b-f409-81ef-bef7-cffc1a76c487")
+        b = _item("3b8d2e5b-f409-81f0-ad0a-d33b97b86d1e")
+
+        assert a.page_id[:14] == b.page_id[:14]  # 前綴確實相同
+        assert slug_for(a) != slug_for(b)
+
+    def test_colliding_pages_write_to_different_files(self, tmp_path):
+        a = _item("3b8d2e5b-f409-81ef-bef7-cffc1a76c487")
+        b = _item("3b8d2e5b-f409-81f0-ad0a-d33b97b86d1e")
+
+        assert brief_path(str(tmp_path), a) != brief_path(str(tmp_path), b)
+        assert article_path(str(tmp_path), a) != article_path(str(tmp_path), b)
+
+    def test_second_write_does_not_clobber_the_first(self, tmp_path):
+        a = _item("3b8d2e5b-f409-81ef-bef7-cffc1a76c487")
+        b = _item("3b8d2e5b-f409-81f0-ad0a-d33b97b86d1e")
+
+        write_brief(str(tmp_path), a, "第一篇的原文")
+        write_brief(str(tmp_path), b, "第二篇的原文")
+
+        with open(brief_path(str(tmp_path), a), encoding="utf-8") as f:
+            assert "第一篇的原文" in f.read()
+
+    def test_empty_page_id_falls_back(self):
+        assert slug_for(_item("")) == "untitled"
 
     def test_paths_differ_between_brief_and_article(self, tmp_path):
         assert brief_path(str(tmp_path), ITEM) != article_path(str(tmp_path), ITEM)
