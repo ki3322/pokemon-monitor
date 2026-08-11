@@ -108,6 +108,46 @@ python -m src.cli pending                                 # 抓原文、產生�
 python -m src.cli publish <page_id> --file drafts/x.md    # 回寫 Notion
 ```
 
+### 勾選後自動撰稿（選填）
+
+不想每次手動觸發的話，用這支輪詢腳本。它用你現有的 Claude 訂閱（`claude -p`），
+不需要 `ANTHROPIC_API_KEY`：
+
+```bash
+export NOTION_TOKEN=ntn_...
+export NOTION_DATABASE_ID=...
+scripts/watch_articles.sh
+```
+
+預設每 10 分鐘檢查一次，`INTERVAL=300` 可改。`--once` 只跑一輪，適合掛 cron：
+
+```bash
+*/15 * * * * cd /path/to/pokemon-monitor && INTERVAL=0 scripts/watch_articles.sh --once
+```
+
+**寫好的稿子狀態停在「撰寫中」**，不會自動標成已完成 —— 自動撰稿最大的風險是事實錯誤
+（來源網站本身就可能寫錯），一定要有人看過。審完再手動改成「已完成」。
+
+需要注意的三件事：
+
+- **電腦要開著**，關機就不會寫。要完全不管機器，得改走 API 方案
+- 腳本用檔案鎖擋住重複執行，撰稿途中不會被第二個實例插隊
+- 日誌在 `drafts/watch.log`
+
+#### 狀態怎麼流動
+
+| 狀態 | 意義 | 會被自動撰稿撿走嗎 |
+|---|---|---|
+| 待處理 | 監控剛寫入，還沒動過 | **會**（且已勾選時） |
+| 撰寫中 | 稿子寫好了，等你審 | 不會 |
+| 已完成 | 審過，可以上稿 | 不會 |
+| 略過 | 不會用，可用 `notion-cleanup` 清掉 | 不會 |
+
+`pending_filter` 的條件是「狀態**等於**待處理」而不是「不等於已完成」。這點很關鍵：
+若寫成「不等於已完成」，自動撰稿標成「撰寫中」的稿子下一輪仍然符合，會被無限重寫。
+
+要重寫某一篇，把狀態改回「待處理」即可。
+
 ### 資料庫欄位
 
 | 欄位 | 型別 | 說明 |

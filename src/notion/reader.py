@@ -56,11 +56,18 @@ def to_selected_item(page: Dict) -> SelectedItem:
 
 
 def pending_filter() -> Dict:
-    """已勾選、且尚未完成的項目。"""
+    """已勾選、且還沒動過的項目。
+
+    刻意用「等於待處理」而不是「不等於已完成」：自動撰稿把寫好的稿子標成
+    「撰寫中」等人審，若條件是「不等於已完成」，那篇下一輪仍然符合，
+    會被無限重寫。狀態一旦離開「待處理」就代表已經處理過了。
+
+    要重寫某一篇，把它的狀態改回「待處理」即可。
+    """
     return {
         "and": [
             {"property": schema.SELECTED, "checkbox": {"equals": True}},
-            {"property": schema.STATUS, "select": {"does_not_equal": schema.STATUS_DONE}},
+            {"property": schema.STATUS, "select": {"equals": schema.STATUS_PENDING}},
         ]
     }
 

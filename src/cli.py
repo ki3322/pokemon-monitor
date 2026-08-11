@@ -19,6 +19,7 @@ from src.dashboard.render import render_page
 from src.notion.client import NotionClient
 from src.notion.dashboard import NotionDashboard
 from src.notion.ids import page_url, parse_page_id
+from src.notion import schema
 from src.notion.reader import NotionReader, SelectedItem, to_selected_item
 from src.notion.upgrade import NotionUpgrade
 from src.notion.writer import NotionWriter
@@ -115,6 +116,8 @@ def command_publish(args: argparse.Namespace) -> int:
             return 1
         link = to_selected_item(page).link
 
+    status = schema.STATUS_WRITING if args.draft else schema.STATUS_DONE
+
     writer = NotionWriter(client)
     if not writer.publish(
         args.page_id,
@@ -122,10 +125,13 @@ def command_publish(args: argparse.Namespace) -> int:
         link=link,
         wordpress_url=args.wordpress_url,
         replace=not args.append,
+        status=status,
     ):
         return 1
 
-    print("已寫入 Notion，狀態設為「已完成」。")
+    print(f"已寫入 Notion，狀態設為「{status}」。")
+    if args.draft:
+        print("這是自動撰稿的草稿，請人工審閱後再把狀態改成「已完成」。")
     print("在 Notion 頁面展開「WordPress HTML」，點複製鈕即可貼進 WordPress。")
     return 0
 
@@ -238,6 +244,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--append",
         action="store_true",
         help="保留頁面既有內容（預設會先清除，避免重複發布疊加兩份文章）",
+    )
+    publish_parser.add_argument(
+        "--draft",
+        action="store_true",
+        help=f"狀態設為「{schema.STATUS_WRITING}」而非「{schema.STATUS_DONE}」，供自動撰稿後人工審閱",
     )
     publish_parser.set_defaults(func=command_publish)
 

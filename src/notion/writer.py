@@ -54,9 +54,9 @@ def build_page_blocks(markdown: str, link: str = "") -> List[Dict]:
     ]
 
 
-def _properties(markdown: str, wordpress_url: str = "") -> Dict:
+def _properties(markdown: str, wordpress_url: str = "", status: str = schema.STATUS_DONE) -> Dict:
     properties: Dict = {
-        schema.STATUS: {"select": {"name": schema.STATUS_DONE}},
+        schema.STATUS: {"select": {"name": status}},
     }
 
     title = extract_title(markdown)
@@ -95,8 +95,13 @@ class NotionWriter:
         link: str = "",
         wordpress_url: str = "",
         replace: bool = True,
+        status: str = schema.STATUS_DONE,
     ) -> bool:
-        """把文章寫進頁面並把狀態設為已完成。成功回傳 True。"""
+        """把文章寫進頁面並設定狀態。成功回傳 True。
+
+        自動撰稿應該傳入「撰寫中」，讓稿子停在等人審的狀態；
+        狀態一旦離開「待處理」，pending_filter 就不會再撿到它。
+        """
         if not self.is_configured():
             print("[Error] Notion 未設定（需要 NOTION_TOKEN 與 NOTION_DATABASE_ID）")
             return False
@@ -111,7 +116,7 @@ class NotionWriter:
                 print("[Error] 寫入頁面內容失敗")
                 return False
 
-        if self.client.update_page(page_id, _properties(markdown, wordpress_url)) is None:
+        if self.client.update_page(page_id, _properties(markdown, wordpress_url, status)) is None:
             print("[Error] 更新頁面屬性失敗（內容已寫入，但狀態未變更）")
             return False
 
