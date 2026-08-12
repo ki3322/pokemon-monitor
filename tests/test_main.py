@@ -189,3 +189,22 @@ class TestValidateConfig:
         )
         with pytest.raises(ValueError, match="沒有對應的爬蟲"):
             validate_config()
+
+    def test_unknown_notion_exclusion_raises(self, monkeypatch):
+        """排除設定打錯字必須立刻報錯：靜默失效的話，
+        使用者會以為某來源不進 Notion，其實它一直在進。"""
+        monkeypatch.setattr("src.main.NOTION_EXCLUDED_GROUPS", {"twitter_Typo"})
+        with pytest.raises(ValueError, match="NOTION_EXCLUDED_GROUPS"):
+            validate_config()
+
+    def test_valid_notion_exclusion_passes(self, monkeypatch):
+        monkeypatch.setattr("src.main.TWITTER_ACCOUNTS", ["UniteVids"])
+        monkeypatch.setattr("src.main.NOTION_EXCLUDED_GROUPS", {"twitter_UniteVids"})
+        validate_config()
+
+    def test_website_group_exclusion_passes(self, monkeypatch):
+        """網站來源用 name（或 group）當群組 ID，也要能排除。"""
+        monkeypatch.setattr("src.main.RSS_SOURCES", [{"name": "GO Hub", "url": "https://x"}])
+        monkeypatch.setattr("src.main.SCRAPE_SOURCES", [])
+        monkeypatch.setattr("src.main.NOTION_EXCLUDED_GROUPS", {"GO Hub"})
+        validate_config()

@@ -1,4 +1,4 @@
-from src.models import generate_item_id, source_group, truncate_title
+from src.models import generate_item_id, source_group, truncate_title, twitter_group
 
 
 class TestGenerateItemId:
@@ -48,3 +48,16 @@ class TestSourceGroup:
 
     def test_explicit_group_wins(self):
         assert source_group({"name": "玩具人 寶可夢", "group": "玩具人"}) == "玩具人"
+
+
+class TestTwitterGroup:
+    def test_prefixes_username(self):
+        assert twitter_group("UniteVids") == "twitter_UniteVids"
+
+    def test_matches_the_id_the_monitor_uses(self):
+        """回歸測試：這個 helper 必須和 main.monitor_twitter 產生的群組 ID 一致，
+        否則 config 的 Notion 排除設定會對不上任何來源。"""
+        from src.dashboard.stats import build_groups
+
+        groups = build_groups([], [], ["UniteVids"], {})
+        assert groups[0].group == twitter_group("UniteVids")

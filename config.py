@@ -78,6 +78,17 @@ TWITTER_ACCOUNTS = [
     "pokemongoappko",
 ]
 
+# 不同步到 Notion 的來源群組。
+#
+# 這裡列的來源「仍會發 Telegram 通知」，只是不進「Pokemon 新聞待撰稿」資料庫——
+# 適合那些值得知道、但不會拿來寫成文章的來源。
+#
+# 群組 ID 的寫法：網站來源用 name（有設 group 就用 group），
+# Twitter 帳號用 twitter_<帳號>。打錯字會在啟動時直接報錯，不會靜默失效。
+NOTION_EXCLUDED_GROUPS = {
+    "twitter_UniteVids",  # 以影片為主，不寫成文章
+}
+
 # 狀態檔案路徑
 STATE_FILE = os.path.join(os.path.dirname(__file__), "state.json")
 

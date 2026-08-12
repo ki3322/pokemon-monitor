@@ -8,6 +8,7 @@ Notion 沒有自訂 CSS，能表達設計語言的只有色塊、標題階層與
 from typing import Dict, List, Optional, Sequence
 
 from src.dashboard.stats import Dashboard, DraftStat, GroupStat, NewsStat
+from src.models import display_group
 from src.notion import blocks as nb
 from src.notion.client import NotionClient
 from src.state import MAX_ITEMS_PER_SOURCE, STATE_VERSION
@@ -49,7 +50,7 @@ def _status_text(group: GroupStat) -> str:
 
 
 def _display_name(group: GroupStat) -> str:
-    return group.group.replace("twitter_", "@", 1)
+    return display_group(group.group)
 
 
 def header_blocks(dashboard: Dashboard) -> List[Dict]:

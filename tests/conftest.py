@@ -31,12 +31,16 @@ class FakeNotifier:
 class FakeSink:
     """通用的假投遞目的地。"""
 
-    def __init__(self, name=SINK_TELEGRAM, label="Telegram", fail_on=()):
+    def __init__(self, name=SINK_TELEGRAM, label="Telegram", fail_on=(), excluded_groups=()):
         self.name = name
         self.label = label
         self.fail_on = set(fail_on)
+        self.excluded_groups = set(excluded_groups)
         self.delivered = []
         self.calls = 0
+
+    def accepts(self, group_id):
+        return group_id not in self.excluded_groups
 
     def deliver(self, item, title):
         self.calls += 1

@@ -8,6 +8,7 @@ from src.article.html import escape_attribute, escape_text
 from src.dashboard.css import stylesheet
 from src.dashboard.stats import Dashboard, DraftStat, GroupStat, NewsStat, Stage
 from src.dashboard.theme import PACK_URL
+from src.models import display_group
 from src.notion import schema
 from src.state import MAX_ITEMS_PER_SOURCE, STATE_VERSION
 
@@ -106,7 +107,7 @@ def render_group_card(group: GroupStat, index: int) -> str:
     else:
         status = _pill("運作中")
 
-    label = group.group.replace("twitter_", "@", 1)
+    label = display_group(group.group)
 
     return (
         f'<article class="card" style="--tilt:{tilt(index)}deg">'

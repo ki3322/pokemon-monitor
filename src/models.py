@@ -5,6 +5,9 @@ from dataclasses import dataclass
 # 通知標題的最大長度
 MAX_TITLE_LENGTH = 100
 
+# Twitter 來源群組的前綴，用來和網站來源的群組名區隔
+TWITTER_GROUP_PREFIX = "twitter_"
+
 
 @dataclass(frozen=True)
 class FeedItem:
@@ -38,6 +41,22 @@ def truncate_title(title: str, max_length: int = MAX_TITLE_LENGTH) -> str:
     if len(title) <= max_length:
         return title
     return title[: max_length - 3] + "..."
+
+
+def twitter_group(username: str) -> str:
+    """Twitter 帳號的去重群組 ID。
+
+    監控、儀表板與設定檔的排除清單都必須用同一個算法，
+    否則設定會對不上實際的群組而靜默失效。
+    """
+    return f"{TWITTER_GROUP_PREFIX}{username}"
+
+
+def display_group(group_id: str) -> str:
+    """把群組 ID 轉成給人看的名稱（twitter_X → @X）。"""
+    if group_id.startswith(TWITTER_GROUP_PREFIX):
+        return "@" + group_id[len(TWITTER_GROUP_PREFIX):]
+    return group_id
 
 
 def source_group(source: dict) -> str:

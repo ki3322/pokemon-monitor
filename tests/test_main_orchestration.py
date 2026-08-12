@@ -180,3 +180,76 @@ class TestScrapeAlert:
         alert_scrape_failures(run, ["a"])
 
         assert run.notifier.messages == []
+
+
+class TestSinkExclusion:
+    """來源可以只排除某個目的地（例如 @UniteVids 不進 Notion）。"""
+
+    def _sinks(self):
+        return (
+            FakeSink(SINK_TELEGRAM, "Telegram"),
+            FakeSink(SINK_NOTION, "Notion", excluded_groups={"twitter_UniteVids"}),
+        )
+
+    def _two_rounds(self, state_file, notifier, group_id, first, second):
+        """跑兩輪：第一輪初始化，第二輪才會真的投遞。
+
+        每輪要新的 MonitorRun —— bootstrapped 是「本輪」的記錄，
+        同一個 run 內重複呼叫同群組會一直走初始化流程。
+        """
+        telegram, notion = self._sinks()
+        state = StateManager(state_file)
+
+        MonitorRun(state, notifier, [telegram, notion]).process(group_id, first)
+        note = MonitorRun(state, notifier, [telegram, notion]).process(group_id, second)
+
+        return telegram, notion, state, note
+
+    def test_excluded_group_skips_that_sink_only(self, state_file, notifier):
+        items = [make_item("a"), make_item("b")]
+        telegram, notion, _, _ = self._two_rounds(
+            state_file, notifier, "twitter_UniteVids", items, items + [make_item("c")]
+        )
+
+        assert [d["item"].id for d in telegram.delivered] == ["c"]
+        assert notion.delivered == []
+
+    def test_excluded_group_leaves_no_notion_state(self, state_file, notifier):
+        """排除的來源不該在 Notion 留下投遞記錄——之後取消排除時，
+        它要能像新來源一樣先初始化，而不是把整頁舊內容當成新的湧出。"""
+        telegram, notion = self._sinks()
+        state = StateManager(state_file)
+        MonitorRun(state, notifier, [telegram, notion]).process(
+            "twitter_UniteVids", [make_item("a")]
+        )
+
+        assert state.is_initialized(SINK_TELEGRAM, "twitter_UniteVids") is True
+        assert state.is_initialized(SINK_NOTION, "twitter_UniteVids") is False
+
+    def test_other_groups_still_reach_both_sinks(self, state_file, notifier):
+        telegram, notion, _, _ = self._two_rounds(
+            state_file,
+            notifier,
+            "twitter_PokemonGoApp",
+            [make_item("a")],
+            [make_item("a"), make_item("b")],
+        )
+
+        assert [d["item"].id for d in telegram.delivered] == ["b"]
+        assert [d["item"].id for d in notion.delivered] == ["b"]
+
+    def test_note_mentions_only_the_accepting_sink(self, state_file, notifier):
+        telegram, notion = self._sinks()
+        note = MonitorRun(StateManager(state_file), notifier, [telegram, notion]).process(
+            "twitter_UniteVids", [make_item("a")]
+        )
+
+        assert "Telegram" in note
+        assert "Notion" not in note
+
+    def test_all_sinks_excluded_reports_clearly(self, state_file, notifier):
+        """全部目的地都排除時要說清楚，不能跟「沒有設定任何目的地」混淆。"""
+        notion = FakeSink(SINK_NOTION, "Notion", excluded_groups={"g"})
+        note = MonitorRun(StateManager(state_file), notifier, [notion]).process("g", [make_item("a")])
+
+        assert note == "(此來源不投遞到任何目的地)"

@@ -6,8 +6,8 @@
 from dataclasses import dataclass
 from typing import Dict, List, Set, Tuple
 
-from config import RSS_SOURCES, SCRAPE_SOURCES, TWITTER_ACCOUNTS
-from src.models import FeedItem, source_group
+from config import NOTION_EXCLUDED_GROUPS, RSS_SOURCES, SCRAPE_SOURCES, TWITTER_ACCOUNTS
+from src.models import FeedItem, source_group, twitter_group
 from src.monitors.rss_monitor import get_rss_items, get_twitter_items
 from src.monitors.web_scraper import find_scraper, get_scraped_items
 from src.notifier import TelegramNotifier
@@ -47,10 +47,16 @@ class MonitorRun:
         if not self.sinks:
             return "(無可用的投遞目的地)"
 
+        # 不收這個來源的目的地整個跳過：不初始化、不投遞、不留記錄。
+        # 之後若取消排除，它會像新來源一樣先初始化而不是湧出整頁舊內容。
+        accepting = [sink for sink in self.sinks if sink.accepts(group_id)]
+        if not accepting:
+            return "(此來源不投遞到任何目的地)"
+
         notes: List[str] = []
         active = []
 
-        for sink in self.sinks:
+        for sink in accepting:
             if self._needs_bootstrap(sink, group_id):
                 self.state.mark_all_delivered(sink.name, group_id, [item.id for item in items])
                 self.bootstrapped.add((sink.name, group_id))
@@ -127,6 +133,19 @@ def validate_config() -> None:
             + "\n  ".join(unhandled)
         )
 
+    known = {source_group(s) for s in list(RSS_SOURCES) + list(SCRAPE_SOURCES)}
+    known |= {twitter_group(username) for username in TWITTER_ACCOUNTS}
+
+    unknown = sorted(set(NOTION_EXCLUDED_GROUPS) - known)
+    if unknown:
+        raise ValueError(
+            "NOTION_EXCLUDED_GROUPS 中的群組不存在，請確認拼字"
+            "（網站用 name／group，Twitter 用 twitter_<帳號>）：\n  "
+            + "\n  ".join(unknown)
+            + "\n目前可用的群組：\n  "
+            + "\n  ".join(sorted(known))
+        )
+
 
 def monitor_rss(run: MonitorRun) -> None:
     print("📡 檢查 RSS 來源...")
@@ -168,7 +187,7 @@ def monitor_twitter(run: MonitorRun) -> List[str]:
             print("(連接失敗)")
             failures.append(username)
             continue
-        print(run.process(f"twitter_{username}", items))
+        print(run.process(twitter_group(username), items))
 
     return failures
 

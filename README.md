@@ -328,6 +328,24 @@ pokemon-monitor/
 | `group` | 否 | 共用已讀記錄的群組，用於避免同一篇文章在多個標籤頁重複通知（預設為 `name`） |
 | `translate` | 否 | 是否翻譯標題（預設 `True`；已是繁體中文的來源請設為 `False`） |
 
+### 讓某個來源不進 Notion
+
+有些來源值得知道，但不會拿來寫成文章（例如以影片為主的帳號）。把它的群組 ID
+加進 `config.py` 的 `NOTION_EXCLUDED_GROUPS`，它就只發 Telegram、不進
+「Pokemon 新聞待撰稿」資料庫：
+
+```python
+NOTION_EXCLUDED_GROUPS = {
+    "twitter_UniteVids",  # 以影片為主，不寫成文章
+}
+```
+
+群組 ID 的寫法：網站來源用 `name`（有設 `group` 就用 `group`），Twitter 帳號用
+`twitter_<帳號>`。拼錯會在啟動時直接報錯並列出所有可用的群組，不會靜默失效。
+
+被排除的來源**不會在 Notion 留下投遞記錄**。之後若把它從清單移除，它會像新來源
+一樣先初始化一輪（只記錄、不投遞），不會一次湧出整批舊內容。
+
 新增爬蟲來源時，必須同時在 `src/monitors/web_scraper.py` 的 `SCRAPERS` 中註冊對應的網域與函式，否則程式會在啟動時直接報錯。
 
 ## 運作方式

@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Dict, List, Optional, Sequence, Tuple
 
 from src.notion import schema
+from src.models import twitter_group
 from src.notion.reader import SelectedItem
 from src.state import MAX_ITEMS_PER_SOURCE, SINK_NOTION, SINK_TELEGRAM
 
@@ -194,7 +195,7 @@ def build_groups(
         add(source.get("group") or name, KIND_WEBSITE, name)
 
     for username in twitter_accounts:
-        add(f"twitter_{username}", KIND_TWITTER, f"@{username}")
+        add(twitter_group(username), KIND_TWITTER, f"@{username}")
 
     return tuple(
         GroupStat(

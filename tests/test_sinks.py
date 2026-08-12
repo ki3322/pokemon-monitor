@@ -1,3 +1,5 @@
+import pytest
+
 from src.sinks import NotionSink, TelegramSink, build_sinks
 from src.state import SINK_NOTION, SINK_TELEGRAM
 from tests.conftest import FakeNotifier, make_item
@@ -43,7 +45,34 @@ class TestNotionSink:
         assert NotionSink(FakeSync(ok=False)).deliver(make_item("1"), "t") is False
 
 
+class TestSinkAccepts:
+    def test_telegram_accepts_every_group(self):
+        """排除設定只針對 Notion：Telegram 仍要收到所有來源。"""
+        sink = TelegramSink(FakeNotifier())
+        assert sink.accepts("twitter_UniteVids") is True
+        assert sink.accepts("Serebii.net") is True
+
+    def test_notion_rejects_excluded_group(self):
+        sink = NotionSink(FakeSync(), excluded_groups={"twitter_UniteVids"})
+        assert sink.accepts("twitter_UniteVids") is False
+
+    def test_notion_accepts_other_groups(self):
+        sink = NotionSink(FakeSync(), excluded_groups={"twitter_UniteVids"})
+        assert sink.accepts("twitter_PokemonGoApp") is True
+        assert sink.accepts("Serebii.net") is True
+
+    def test_no_exclusions_accepts_everything(self):
+        assert NotionSink(FakeSync()).accepts("twitter_UniteVids") is True
+
+
 class TestBuildSinks:
+    def test_notion_sink_gets_configured_exclusions(self, monkeypatch):
+        monkeypatch.setattr("src.sinks.NOTION_EXCLUDED_GROUPS", {"twitter_UniteVids"})
+        sinks = build_sinks(FakeNotifier(), FakeSync())
+
+        notion = next(s for s in sinks if s.name == SINK_NOTION)
+        assert notion.accepts("twitter_UniteVids") is False
+
     def test_includes_only_configured_sinks(self):
         class Unconfigured:
             def is_configured(self):
