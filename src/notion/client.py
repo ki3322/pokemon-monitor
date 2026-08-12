@@ -141,6 +141,14 @@ class NotionClient:
     def retrieve_page(self, page_id: str) -> Optional[Dict]:
         return self._request("GET", f"/pages/{page_id}")
 
+    def archive_page(self, page_id: str) -> bool:
+        """把頁面移到 Notion 垃圾桶。
+
+        用 archived 而非真的刪除：Notion 介面 30 天內都還能還原，
+        清理指令誤刪時才有救。
+        """
+        return self._request("PATCH", f"/pages/{page_id}", {"archived": True}) is not None
+
     def update_page(self, page_id: str, properties: Dict) -> Optional[Dict]:
         return self._request("PATCH", f"/pages/{page_id}", {"properties": properties})
 

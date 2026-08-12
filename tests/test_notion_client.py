@@ -207,3 +207,17 @@ class TestPageOperations:
         client.create_database("parent-1", "標題", {"名稱": {"title": {}}})
 
         assert calls[0]["json"]["parent"] == {"type": "page_id", "page_id": "parent-1"}
+
+
+class TestArchivePage:
+    def test_sends_archived_true(self, client, monkeypatch):
+        """封存是「移到垃圾桶」，Notion 介面 30 天內可還原。"""
+        calls = patch_request(monkeypatch, [FakeResponse(payload={"id": "p"})])
+
+        assert client.archive_page("p") is True
+        assert calls[0]["method"] == "PATCH"
+        assert calls[0]["json"] == {"archived": True}
+
+    def test_reports_failure(self, client, monkeypatch):
+        patch_request(monkeypatch, [FakeResponse(status_code=404)])
+        assert client.archive_page("p") is False

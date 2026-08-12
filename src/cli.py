@@ -11,11 +11,19 @@ import os
 import sys
 from typing import List, Optional
 
-from config import DRAFTS_DIR, STATE_FILE
+from config import (
+    DRAFTS_DIR,
+    NOTION_EXCLUDED_GROUPS,
+    RSS_SOURCES,
+    SCRAPE_SOURCES,
+    STATE_FILE,
+    TWITTER_ACCOUNTS,
+)
 from src.article.brief import article_path, write_brief
 from src.article.extractor import fetch_content
 from src.dashboard.collect import build_dashboard
 from src.dashboard.render import render_page
+from src.notion.cleanup import CleanupTarget, NotionCleanup, excluded_source_names
 from src.notion.client import NotionClient
 from src.notion.dashboard import NotionDashboard
 from src.notion.ids import page_url, parse_page_id
@@ -224,6 +232,50 @@ def command_notion_upgrade(args: argparse.Namespace) -> int:
     return 0
 
 
+def _describe_targets(targets: List[CleanupTarget]) -> None:
+    for target in targets:
+        print(f"  [{target.reason}] {target.title or '（無標題）'}")
+        print(f"      來源: {target.source}  |  狀態: {target.status}")
+
+
+def command_notion_cleanup(args: argparse.Namespace) -> int:
+    """把不需要的項目移到 Notion 垃圾桶（30 天內可還原）。"""
+    client = NotionClient()
+    if not _require_notion(client):
+        return 1
+
+    sources = (
+        excluded_source_names(
+            RSS_SOURCES, SCRAPE_SOURCES, TWITTER_ACCOUNTS, NOTION_EXCLUDED_GROUPS
+        )
+        if args.excluded
+        else set()
+    )
+
+    cleanup = NotionCleanup(client)
+    targets = cleanup.find_targets(status=args.status, sources=sources)
+    if targets is None:
+        print("[Error] Notion 查詢失敗，未清理任何項目，請稍後再試")
+        return 1
+
+    if not targets:
+        print("沒有要清理的項目。")
+        return 0
+
+    print(f"符合條件的項目（{len(targets)} 筆）：\n")
+    _describe_targets(targets)
+
+    if not args.yes:
+        print(f"\n這是預覽，沒有變更任何東西。確定要清理請加 --yes。")
+        return 0
+
+    archived, failed = cleanup.archive(targets)
+    print(f"\n已移到垃圾桶 {archived} 筆" + (f"，{failed} 筆失敗" if failed else "。"))
+    if archived:
+        print("誤刪的話，到 Notion 的垃圾桶（左下角「更多」→ Trash）30 天內都能還原。")
+    return 1 if failed else 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="src.cli", description="PokemonHubs 撰稿流程")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -272,6 +324,26 @@ def build_parser() -> argparse.ArgumentParser:
         help="順便把既有項目的「原始標題」補上（只填空的，不覆寫）",
     )
     upgrade_parser.set_defaults(func=command_notion_upgrade)
+
+    cleanup_parser = subparsers.add_parser(
+        "notion-cleanup", help="把不需要的項目移到 Notion 垃圾桶（預設只預覽）"
+    )
+    cleanup_parser.add_argument(
+        "--status",
+        default=schema.STATUS_SKIPPED,
+        help=f"清掉這個狀態的項目（預設「{schema.STATUS_SKIPPED}」；給空字串則不依狀態篩選）",
+    )
+    cleanup_parser.add_argument(
+        "--excluded",
+        action="store_true",
+        help="連同 NOTION_EXCLUDED_GROUPS 的來源一起清（排除設定只擋新的，舊項目要靠這裡）",
+    )
+    cleanup_parser.add_argument(
+        "--yes",
+        action="store_true",
+        help="真的執行。不加這個只會列出符合條件的項目，不變更任何東西",
+    )
+    cleanup_parser.set_defaults(func=command_notion_cleanup)
 
     return parser
 

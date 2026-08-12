@@ -247,3 +247,92 @@ class TestPublishCommand:
         ])
 
         assert writer.calls[0]["link"] == "https://b.example"
+
+
+class FakeCleanupClient:
+    """假的 NotionClient，記錄封存過哪些頁面。"""
+
+    def __init__(self, pages=None, query_fails=False):
+        self.pages = pages if pages is not None else []
+        self.query_fails = query_fails
+        self.archived = []
+
+    def is_configured(self):
+        return True
+
+    def query_database(self, filter_=None, page_size=100, sorts=None, limit=None):
+        return None if self.query_fails else self.pages
+
+    def archive_page(self, page_id):
+        self.archived.append(page_id)
+        return True
+
+
+def _cleanup_page(page_id="p1", title="舊推文", source="@UniteVids", status="待處理"):
+    from src.notion import schema
+
+    return {
+        "id": page_id,
+        "properties": {
+            schema.TITLE: {"title": [{"plain_text": title}]},
+            schema.SOURCE: {"rich_text": [{"plain_text": source}]},
+            schema.STATUS: {"select": {"name": status}},
+        },
+    }
+
+
+class TestNotionCleanupCommand:
+    def _patch(self, monkeypatch, client):
+        monkeypatch.setattr("src.cli.NotionClient", lambda: client)
+
+    def test_dry_run_is_the_default(self, monkeypatch, capsys):
+        """破壞性指令預設只是預覽：沒有 --yes 就什麼都不動。"""
+        client = FakeCleanupClient([_cleanup_page()])
+        self._patch(monkeypatch, client)
+
+        assert cli.main(["notion-cleanup", "--excluded"]) == 0
+
+        assert client.archived == []
+        out = capsys.readouterr().out
+        assert "舊推文" in out
+        assert "--yes" in out
+
+    def test_yes_archives(self, monkeypatch, capsys):
+        client = FakeCleanupClient([_cleanup_page("p1"), _cleanup_page("p2")])
+        self._patch(monkeypatch, client)
+
+        assert cli.main(["notion-cleanup", "--excluded", "--yes"]) == 0
+        assert client.archived == ["p1", "p2"]
+        assert "已移到垃圾桶 2 筆" in capsys.readouterr().out
+
+    def test_nothing_to_clean(self, monkeypatch, capsys):
+        self._patch(monkeypatch, FakeCleanupClient([]))
+
+        assert cli.main(["notion-cleanup", "--excluded", "--yes"]) == 0
+        assert "沒有要清理的項目" in capsys.readouterr().out
+
+    def test_query_failure_exits_nonzero(self, monkeypatch, capsys):
+        """查詢失敗不能報成功，否則使用者以為清乾淨了。"""
+        self._patch(monkeypatch, FakeCleanupClient(query_fails=True))
+
+        assert cli.main(["notion-cleanup", "--excluded"]) == 1
+        assert "[Error]" in capsys.readouterr().out
+
+    def test_defaults_to_skipped_status(self, monkeypatch, capsys):
+        """不給條件時清「略過」，與 README 的說明一致。"""
+        from src.notion import schema
+
+        client = FakeCleanupClient([_cleanup_page(status=schema.STATUS_SKIPPED)])
+        self._patch(monkeypatch, client)
+
+        assert cli.main(["notion-cleanup", "--yes"]) == 0
+        assert client.archived == ["p1"]
+
+    def test_unconfigured_notion_exits_nonzero(self, monkeypatch, capsys):
+        class Unconfigured:
+            def is_configured(self):
+                return False
+
+        self._patch(monkeypatch, Unconfigured())
+        assert cli.main(["notion-cleanup"]) == 1
+        assert "Notion 未設定" in capsys.readouterr().out
