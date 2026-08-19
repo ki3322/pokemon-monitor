@@ -23,7 +23,12 @@ from src.article.brief import article_path, write_brief
 from src.article.extractor import fetch_content
 from src.dashboard.collect import build_dashboard
 from src.dashboard.render import render_page
-from src.notion.cleanup import CleanupTarget, NotionCleanup, excluded_source_names
+from src.notion.cleanup import (
+    DEFAULT_STALE_DAYS,
+    CleanupTarget,
+    NotionCleanup,
+    excluded_source_names,
+)
 from src.notion.client import NotionClient
 from src.notion.dashboard import NotionDashboard
 from src.notion.ids import page_url, parse_page_id
@@ -253,7 +258,9 @@ def command_notion_cleanup(args: argparse.Namespace) -> int:
     )
 
     cleanup = NotionCleanup(client)
-    targets = cleanup.find_targets(status=args.status, sources=sources)
+    targets = cleanup.find_targets(
+        status=args.status, sources=sources, stale_days=args.stale
+    )
     if targets is None:
         print("[Error] Notion 查詢失敗，未清理任何項目，請稍後再試")
         return 1
@@ -332,6 +339,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--status",
         default=schema.STATUS_SKIPPED,
         help=f"清掉這個狀態的項目（預設「{schema.STATUS_SKIPPED}」；給空字串則不依狀態篩選）",
+    )
+    cleanup_parser.add_argument(
+        "--stale",
+        type=int,
+        default=0,
+        metavar="DAYS",
+        help=(
+            "清掉超過 N 天還沒勾選「寫成文章」的項目"
+            f"（自動排程用 {DEFAULT_STALE_DAYS}；只清狀態仍為「{schema.STATUS_PENDING}」的）"
+        ),
     )
     cleanup_parser.add_argument(
         "--excluded",

@@ -336,3 +336,32 @@ class TestNotionCleanupCommand:
         self._patch(monkeypatch, Unconfigured())
         assert cli.main(["notion-cleanup"]) == 1
         assert "Notion 未設定" in capsys.readouterr().out
+
+    def test_stale_flag_only_targets_unchecked_pending(self, monkeypatch):
+        """--stale 的三個護欄要真的送到 Notion：沒勾選、待處理、夠舊。"""
+        from src.notion import schema
+
+        captured = {}
+
+        class Recording(FakeCleanupClient):
+            def query_database(self, filter_=None, page_size=100, sorts=None, limit=None):
+                captured["filter"] = filter_
+                return []
+
+        self._patch(monkeypatch, Recording())
+        assert cli.main(["notion-cleanup", "--status", "", "--stale", "2"]) == 0
+
+        conditions = captured["filter"]["or"][0]["and"]
+        assert {"property": schema.SELECTED, "checkbox": {"equals": False}} in conditions
+        assert {
+            "property": schema.STATUS,
+            "select": {"equals": schema.STATUS_PENDING},
+        } in conditions
+        assert any(c.get("property") == schema.FOUND_AT for c in conditions)
+
+    def test_stale_reason_shown_in_preview(self, monkeypatch, capsys):
+        client = FakeCleanupClient([_cleanup_page(title="沒人要的新聞", status="待處理")])
+        self._patch(monkeypatch, client)
+
+        assert cli.main(["notion-cleanup", "--status", "", "--stale", "2"]) == 0
+        assert "超過 2 天未勾選" in capsys.readouterr().out

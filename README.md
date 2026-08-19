@@ -301,9 +301,15 @@ pokemon-monitor/
 │       ├── sync.py                # 監控 → Notion
 │       ├── reader.py              # 讀取勾選項目
 │       ├── upgrade.py             # 既有資料庫的欄位升級
+│       ├── cleanup.py             # 清掉不需要的項目
 │       ├── dashboard.py           # 儀表板 → Notion 頁面
 │       └── writer.py              # 文章 → Notion 頁面
-├── scripts/setup_notion.py        # 一次性建立 Notion 資料庫
+├── scripts/
+│   ├── setup_notion.py            # 一次性建立 Notion 資料庫
+│   ├── watch_articles.sh          # 勾選後自動撰稿的輪詢腳本
+│   ├── watch_once_launchd.sh      # 撰稿排程的 launchd 進入點
+│   ├── cleanup_once_launchd.sh    # 清理排程的 launchd 進入點
+│   └── *.plist                    # LaunchAgent 範本
 ├── .claude/skills/write-articles/ # Claude Code 撰稿流程
 ├── tests/                         # 測試與 HTML fixtures
 ├── config.py                      # 設定檔
@@ -362,11 +368,50 @@ python -m src.cli notion-cleanup --excluded --yes     # 真的清掉
 | 參數 | 作用 |
 |---|---|
 | `--status` | 清掉這個狀態的項目（預設「略過」；給空字串 `--status ""` 則不依狀態篩選） |
+| `--stale N` | 清掉超過 N 天還沒勾選「寫成文章」的項目 |
 | `--excluded` | 連同 `NOTION_EXCLUDED_GROUPS` 的來源一起清 |
 | `--yes` | 真的執行 |
 
-兩個條件是**聯集**：狀態符合的、或來自排除來源的，都會被清掉。只想清排除來源、
-不想動「略過」的話，用 `--status "" --excluded`。
+條件之間是**聯集**：任一符合就會被清掉。只想清排除來源、不想動「略過」的話，
+用 `--status "" --excluded`。
+
+#### `--stale` 的三道護欄
+
+「沒勾選」不等於「可以刪」，所以 `--stale` 同時要求三個條件，缺一不可：
+
+1. **沒勾選**「寫成文章」—— 勾了就是要寫，再舊都不刪。
+2. **狀態仍是「待處理」**—— 撰寫中／已完成代表已經投入過人力，
+   就算事後被取消勾選，也不該把稿子連頁面一起刪掉。
+3. **發現時間超過 N 天** —— 才有機會被你看到。
+
+### 自動清理
+
+每天固定清掉沒人要的新聞。憑證與 [自動撰稿的 LaunchAgent](#掛成-launchagent-macos-建議做法)
+共用同兩個 Keychain 項目，所以那邊設定過就不必再設一次。
+
+```bash
+cp scripts/com.pokemon-monitor.cleanup.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.pokemon-monitor.cleanup.plist
+```
+
+每天 09:30 執行，清掉**超過 2 天未勾選**的、以及**排除來源**的項目。天數改
+`scripts/cleanup_once_launchd.sh` 的 `STALE_DAYS`，時間改 plist 的
+`StartCalendarInterval`，改完 `launchctl unload` 再 `load` 一次。
+
+刻意不設 `RunAtLoad`：清理是破壞性的，不該因為登入或重載排程就立刻跑一次。
+排程也不碰「略過」的項目 —— 那是人工判斷的結果，何時清由你決定。
+
+**先確認會清到什麼**（不會變更任何東西）：
+
+```bash
+scripts/cleanup_once_launchd.sh --dry-run && cat drafts/cleanup.log
+```
+
+日誌在 `drafts/cleanup.log`。停用：
+
+```bash
+launchctl unload ~/Library/LaunchAgents/com.pokemon-monitor.cleanup.plist
+```
 
 新增爬蟲來源時，必須同時在 `src/monitors/web_scraper.py` 的 `SCRAPERS` 中註冊對應的網域與函式，否則程式會在啟動時直接報錯。
 

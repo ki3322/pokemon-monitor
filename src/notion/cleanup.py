@@ -9,6 +9,7 @@
 30 天內在 Notion 介面還能還原。
 """
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Iterable, List, Optional, Sequence, Set
 
 from src.models import display_group, source_group, twitter_group
@@ -16,6 +17,9 @@ from src.notion import schema
 from src.notion.client import NotionClient
 
 REASON_EXCLUDED = "來源已排除"
+
+# 沒勾選的新聞放這麼多天後自動清掉
+DEFAULT_STALE_DAYS = 2
 
 
 @dataclass(frozen=True)
@@ -57,8 +61,33 @@ def excluded_source_names(
     return {name for name in names if name}
 
 
-def cleanup_filter(status: str, sources: Iterable[str]) -> Optional[Dict]:
-    """組出「狀態符合、或來源符合」的聯集條件；沒有條件時回傳 None。"""
+def stale_clause(days: int, now: Optional[datetime] = None) -> Dict:
+    """「放太久沒人要」的條件：沒勾選、沒動過、而且夠舊。
+
+    三個條件缺一不可，每一個都是防止誤刪的護欄：
+      - 沒勾選：勾了就是要寫，再舊都不能刪。
+      - 狀態為待處理：撰寫中／已完成代表已經投入過人力，
+        就算事後被取消勾選，也不該把稿子連頁面一起刪掉。
+      - 發現時間夠舊：才有機會被看到。
+    """
+    now = now or datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=days)
+
+    return {
+        "and": [
+            {"property": schema.SELECTED, "checkbox": {"equals": False}},
+            {"property": schema.STATUS, "select": {"equals": schema.STATUS_PENDING}},
+            {"property": schema.FOUND_AT, "date": {"before": cutoff.isoformat()}},
+        ]
+    }
+
+
+def cleanup_filter(
+    status: str,
+    sources: Iterable[str],
+    stale: Optional[Dict] = None,
+) -> Optional[Dict]:
+    """組出各條件的聯集；沒有任何條件時回傳 None。"""
     clauses: List[Dict] = []
 
     if status:
@@ -67,6 +96,9 @@ def cleanup_filter(status: str, sources: Iterable[str]) -> Optional[Dict]:
     # 排序讓輸出穩定，測試與日誌才可預期
     for name in sorted(sources):
         clauses.append({"property": schema.SOURCE, "rich_text": {"equals": name}})
+
+    if stale:
+        clauses.append(stale)
 
     return {"or": clauses} if clauses else None
 
@@ -96,13 +128,17 @@ class NotionCleanup:
         self,
         status: str = "",
         sources: Optional[Iterable[str]] = None,
+        stale_days: int = 0,
+        now: Optional[datetime] = None,
     ) -> Optional[List[CleanupTarget]]:
         """找出符合條件的項目。查詢失敗回傳 None。
 
         失敗必須與「沒有東西要清」區分開來，否則 API 掛掉會被當成清乾淨了。
         """
         source_names = set(sources or ())
-        filter_ = cleanup_filter(status, source_names)
+        stale = stale_clause(stale_days, now) if stale_days else None
+
+        filter_ = cleanup_filter(status, source_names, stale)
         if filter_ is None:
             return []
 
@@ -110,23 +146,35 @@ class NotionCleanup:
         if pages is None:
             return None
 
-        return [self._to_target(page, status, source_names) for page in pages]
+        return [self._to_target(page, status, source_names, stale_days) for page in pages]
 
     @staticmethod
-    def _to_target(page: Dict, status: str, source_names: Set[str]) -> CleanupTarget:
+    def _reason(source: str, page_status: str, source_names: Set[str], stale_days: int, status: str) -> str:
+        """說明這筆為什麼被選中。多個條件都符合時挑最根本的那個。"""
+        if source in source_names:
+            return REASON_EXCLUDED
+        if stale_days and page_status == schema.STATUS_PENDING:
+            return f"超過 {stale_days} 天未勾選"
+        return f"狀態為{page_status or status}"
+
+    @classmethod
+    def _to_target(
+        cls,
+        page: Dict,
+        status: str,
+        source_names: Set[str],
+        stale_days: int = 0,
+    ) -> CleanupTarget:
         properties = page.get("properties", {})
         source = _plain_text(properties.get(schema.SOURCE))
         page_status = _status_name(properties.get(schema.STATUS))
-
-        # 兩個條件都符合時，來源優先——那是比較根本的理由
-        reason = REASON_EXCLUDED if source in source_names else f"狀態為{page_status or status}"
 
         return CleanupTarget(
             page_id=page.get("id", ""),
             title=_plain_text(properties.get(schema.TITLE)),
             source=source,
             status=page_status,
-            reason=reason,
+            reason=cls._reason(source, page_status, source_names, stale_days, status),
         )
 
     def archive(self, targets: Sequence[CleanupTarget]) -> tuple:

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  每天清掉 Notion 裡沒人要的新聞。
+
+  安裝方式見 README「自動清理」。這份是範本，
+  安裝時複製到 ~/Library/LaunchAgents/ 再 launchctl load。
+
+  憑證由 cleanup_once_launchd.sh 從 Keychain 取出，這裡不放秘密。
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.pokemon-monitor.cleanup</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/bash</string>
+        <string>/Users/KIP/Projects/pokemon-monitor/scripts/cleanup_once_launchd.sh</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/KIP/Projects/pokemon-monitor</string>
+
+    <!--
+      每天早上 9:30 跑一次。用 StartCalendarInterval 而非 StartInterval：
+      清理是低頻的維護工作，固定時間比「每 N 秒」好預期，
+      日誌看起來也一天一筆。錯過的排程（關機／睡眠）launchd 會在喚醒後補跑。
+    -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>9</integer>
+        <key>Minute</key>
+        <integer>30</integer>
+    </dict>
+
+    <!--
+      刻意不設 RunAtLoad：清理是破壞性的，
+      不該因為登入或重載排程就立刻執行一次。
+    -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/KIP/Projects/pokemon-monitor/drafts/cleanup-launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/KIP/Projects/pokemon-monitor/drafts/cleanup-launchd.err.log</string>
+
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>Nice</key>
+    <integer>5</integer>
+</dict>
+</plist>

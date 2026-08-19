@@ -1,9 +1,13 @@
+from datetime import datetime, timezone
+
 from src.notion import schema
 from src.notion.cleanup import (
+    REASON_EXCLUDED,
     CleanupTarget,
     NotionCleanup,
     cleanup_filter,
     excluded_source_names,
+    stale_clause,
 )
 
 RSS = [{"name": "Pokemon GO Hub", "url": "https://a.example/feed"}]
@@ -147,3 +151,70 @@ class TestArchive:
         client = FakeClient()
         assert NotionCleanup(client).archive([]) == (0, 0)
         assert client.archived == []
+
+
+NOW = datetime(2026, 8, 11, 12, 0, tzinfo=timezone.utc)
+
+
+class TestStaleClause:
+    def _clause(self, days=2):
+        return stale_clause(days, NOW)["and"]
+
+    def test_requires_unchecked(self):
+        """勾選了就是要寫，再舊都不能刪。"""
+        assert {"property": schema.SELECTED, "checkbox": {"equals": False}} in self._clause()
+
+    def test_requires_untouched_status(self):
+        """只清「待處理」：撰寫中／已完成代表已經投入過人力，
+        就算後來被取消勾選也不該連稿子一起刪掉。"""
+        assert {
+            "property": schema.STATUS,
+            "select": {"equals": schema.STATUS_PENDING},
+        } in self._clause()
+
+    def test_cutoff_is_days_before_now(self):
+        found = next(c for c in self._clause(2) if c["property"] == schema.FOUND_AT)
+        assert found["date"]["before"] == "2026-08-09T12:00:00+00:00"
+
+    def test_all_three_conditions_are_anded(self):
+        assert len(self._clause()) == 3
+
+
+class TestFilterWithStale:
+    def test_stale_joins_the_union(self):
+        clauses = cleanup_filter("", set(), stale_clause(2, NOW))["or"]
+        assert len(clauses) == 1
+        assert "and" in clauses[0]
+
+    def test_combines_with_other_criteria(self):
+        clauses = cleanup_filter(schema.STATUS_SKIPPED, {"@UniteVids"}, stale_clause(2, NOW))["or"]
+        assert len(clauses) == 3
+
+    def test_stale_alone_is_enough_to_query(self):
+        assert cleanup_filter("", set(), stale_clause(2, NOW)) is not None
+
+
+class TestStaleTargets:
+    def test_find_targets_builds_stale_clause(self):
+        client = FakeClient([_page("p1", "沒人要的新聞", "Serebii.net", schema.STATUS_PENDING)])
+        targets = NotionCleanup(client).find_targets(status="", stale_days=2, now=NOW)
+
+        assert len(targets) == 1
+        assert "2 天" in targets[0].reason
+
+    def test_no_stale_days_means_no_stale_clause(self):
+        client = FakeClient([])
+        NotionCleanup(client).find_targets(status=schema.STATUS_SKIPPED, now=NOW)
+
+        assert client.last_filter == {
+            "or": [{"property": schema.STATUS, "select": {"equals": schema.STATUS_SKIPPED}}]
+        }
+
+    def test_excluded_source_wins_the_reason(self):
+        """同時符合兩個條件時，來源被排除是比較根本的理由。"""
+        client = FakeClient([_page("p1", "舊推文", "@UniteVids", schema.STATUS_PENDING)])
+        targets = NotionCleanup(client).find_targets(
+            sources={"@UniteVids"}, stale_days=2, now=NOW
+        )
+
+        assert targets[0].reason == REASON_EXCLUDED
