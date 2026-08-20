@@ -30,16 +30,40 @@ log() {
     printf '[%s] %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$1" >>"$LOG_FILE"
 }
 
+# claude 要求的最低 Node 版本（低於此會噴看不懂的 SyntaxError）
+MIN_NODE_MAJOR=18
+
 # nvm 的路徑含 node 版本號，寫死會在升級 node 後失效，因此逐一掃過。
+#
+# 順序很重要：通用目錄先放，nvm 最後才插到最前面。/usr/local/bin 可能躺著
+# 一個很舊的 node（這台機器上是 v17），而 claude 的 shebang 是
+# `#!/usr/bin/env node`，誰在 PATH 前面就用誰。
 add_node_to_path() {
+    PATH="$(dirname "$PYTHON_BIN"):/usr/local/bin:/opt/homebrew/bin:$PATH"
+
     local dir
     for dir in "$HOME"/.nvm/versions/node/*/bin; do
-        if [[ -x "$dir/claude" ]]; then
+        if [[ -x "$dir/claude" && -x "$dir/node" ]]; then
             PATH="$dir:$PATH"
         fi
     done
-    PATH="$(dirname "$PYTHON_BIN"):/usr/local/bin:/opt/homebrew/bin:$PATH"
     export PATH
+}
+
+# claude 是 node 腳本，跑錯 node 版本只會得到看不懂的模組錯誤，
+# 在這裡先擋下來並講清楚。
+check_node_version() {
+    local version major
+    version="$(node --version 2>/dev/null)" || return 1
+    major="${version#v}"
+    major="${major%%.*}"
+
+    if [[ -z "$major" || "$major" -lt "$MIN_NODE_MAJOR" ]]; then
+        log "ERROR: node 版本過舊（$version，需要 v${MIN_NODE_MAJOR}+），claude 會啟動失敗"
+        log "       實際採用的是 $(command -v node)"
+        return 1
+    fi
+    return 0
 }
 
 # 從 Keychain 取出單一項目；讀不到回傳非 0。
@@ -67,6 +91,7 @@ main() {
         log "ERROR: PATH 中找不到 claude，請確認 Claude Code CLI 仍安裝在 nvm 的 node 底下"
         exit 1
     fi
+    check_node_version || exit 1
     if [[ ! -x "$PYTHON_BIN" ]]; then
         log "ERROR: 找不到直譯器 $PYTHON_BIN，請改 PYTHON_BIN 指向有裝 requirements.txt 的 python"
         exit 1
