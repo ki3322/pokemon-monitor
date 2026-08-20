@@ -60,6 +60,32 @@ class TestParsePageId:
             "https://app.notion.com/p/0123456789abcdef0123456789abcdef?source=copy_link"
         ) == "0123456789abcdef0123456789abcdef"
 
+    def test_database_url_ignores_view_id(self):
+        """回歸測試：資料庫網址的 ?v= 是「檢視」的 ID，不是資料庫本身。
+
+        原本取「最後一個」ID，會把 view ID 當成頁面 ID 回傳，
+        使用者拿到一個看不懂的 404。
+        """
+        assert parse_page_id(
+            "https://www.notion.so/3b8d2e5bf409817cbe98d897474e599f"
+            "?v=3b8d2e5bf409812f8f45000c25f3bc86&source=copy_link"
+        ) == "3b8d2e5bf409817cbe98d897474e599f"
+
+    def test_row_url_prefers_the_p_parameter(self):
+        """從資料庫檢視打開某一列時，網址是 <資料庫>?v=<檢視>&p=<該列>。
+        使用者要的是那一列，不是資料庫。"""
+        assert parse_page_id(
+            "https://www.notion.so/3b8d2e5bf409817cbe98d897474e599f"
+            "?v=3b8d2e5bf409812f8f45000c25f3bc86"
+            "&p=0123456789abcdef0123456789abcdef&pm=s"
+        ) == "0123456789abcdef0123456789abcdef"
+
+    def test_title_slug_keeps_trailing_id(self):
+        """一般頁面網址的 ID 在標題 slug 後面，仍要取路徑上最後一個。"""
+        assert parse_page_id(
+            "https://www.notion.so/myteam/Pokemon-News-0123456789abcdef0123456789abcdef"
+        ) == "0123456789abcdef0123456789abcdef"
+
     def test_rejects_garbage(self):
         assert parse_page_id("not a page") == ""
 
