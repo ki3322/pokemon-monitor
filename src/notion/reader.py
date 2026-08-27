@@ -72,6 +72,21 @@ def pending_filter() -> Dict:
     }
 
 
+def blocked_filter() -> Dict:
+    """已勾選、但狀態不是「待處理」——勾了也不會被撿走的死角。
+
+    這是 pending_filter 的互補集。條件收得這麼緊是刻意的（見上），
+    副作用是使用者把狀態改成別的之後，再怎麼勾都不會有反應，
+    而且沒有任何地方會說明原因。列出來才不會無聲卡住。
+    """
+    return {
+        "and": [
+            {"property": schema.SELECTED, "checkbox": {"equals": True}},
+            {"property": schema.STATUS, "select": {"does_not_equal": schema.STATUS_PENDING}},
+        ]
+    }
+
+
 class NotionReader:
     def __init__(self, client: Optional[NotionClient] = None):
         self.client = client or NotionClient()
@@ -99,6 +114,16 @@ class NotionReader:
             sorts=[{"property": schema.FOUND_AT, "direction": "descending"}],
             limit=limit,
         )
+        if pages is None:
+            return None
+        return [to_selected_item(page) for page in pages]
+
+    def blocked_items(self) -> Optional[List[SelectedItem]]:
+        """取得已勾選但狀態不是「待處理」的項目。
+
+        查詢失敗回傳 None，理由同 pending_items。
+        """
+        pages = self.client.query_database(blocked_filter())
         if pages is None:
             return None
         return [to_selected_item(page) for page in pages]

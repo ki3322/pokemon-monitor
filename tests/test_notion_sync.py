@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 import pytest
 
 from src.notion import schema
-from src.notion.reader import NotionReader, pending_filter, to_selected_item
+from src.notion.reader import NotionReader, blocked_filter, pending_filter, to_selected_item
 from src.notion.sync import NotionSync, _properties
 from src.notion.writer import NotionWriter, build_page_blocks
 from tests.conftest import make_item
@@ -293,3 +293,42 @@ class TestWriter:
 
         assert len(client.appended) > 1
         assert all(len(batch) <= 100 for batch in client.appended)
+
+
+class TestBlockedFilter:
+    """已勾選、但狀態不是「待處理」——勾了也不會被撿走的死角。"""
+
+    def test_requires_selected(self):
+        assert {
+            "property": schema.SELECTED,
+            "checkbox": {"equals": True},
+        } in blocked_filter()["and"]
+
+    def test_excludes_pending_status(self):
+        """待處理的是正常佇列，不算卡住。"""
+        assert {
+            "property": schema.STATUS,
+            "select": {"does_not_equal": schema.STATUS_PENDING},
+        } in blocked_filter()["and"]
+
+    def test_is_the_complement_of_pending_filter(self):
+        """兩個條件必須互補：勾選的項目非此即彼，不能有漏網或重複。"""
+        pending = pending_filter()["and"]
+        blocked = blocked_filter()["and"]
+
+        assert pending[0] == blocked[0]                       # 都要求已勾選
+        assert pending[1]["property"] == blocked[1]["property"]
+        assert "equals" in pending[1]["select"]
+        assert "does_not_equal" in blocked[1]["select"]
+
+
+class TestBlockedItems:
+    def test_returns_items(self):
+        client = FakeNotionClient(pages=[{"id": "p", "properties": {}}])
+        items = NotionReader(client).blocked_items()
+
+        assert len(items) == 1
+        assert client.last_filter == blocked_filter()
+
+    def test_reports_query_failure(self):
+        assert NotionReader(FakeNotionClient(query_fails=True)).blocked_items() is None

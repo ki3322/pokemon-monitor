@@ -89,12 +89,16 @@ class TestBrief:
 
 
 class FakeReader:
-    def __init__(self, items):
+    def __init__(self, items, blocked=()):
         self.items = items
+        self.blocked = list(blocked)
         self.client = type("C", (), {"is_configured": lambda self: True})()
 
     def pending_items(self):
         return self.items
+
+    def blocked_items(self):
+        return self.blocked
 
 
 class FakeWriter:
@@ -365,3 +369,75 @@ class TestNotionCleanupCommand:
 
         assert cli.main(["notion-cleanup", "--status", "", "--stale", "2"]) == 0
         assert "超過 2 天未勾選" in capsys.readouterr().out
+
+
+class FakeListReader:
+    """假的 NotionReader，分別控制佇列與卡住項目。"""
+
+    def __init__(self, pending=(), blocked=(), pending_fails=False, blocked_fails=False):
+        self.pending = list(pending)
+        self.blocked = list(blocked)
+        self.pending_fails = pending_fails
+        self.blocked_fails = blocked_fails
+        self.client = self
+
+    def is_configured(self):
+        return True
+
+    def pending_items(self):
+        return None if self.pending_fails else self.pending
+
+    def blocked_items(self):
+        return None if self.blocked_fails else self.blocked
+
+
+def _list_item(title="標題", status="待處理", selected=True):
+    return SelectedItem(
+        page_id="p1",
+        title=title,
+        link="https://a.example/1",
+        source="玩具人 寶可夢",
+        category="文章",
+        status=status,
+        selected=selected,
+    )
+
+
+class TestListBlockedWarning:
+    def _patch(self, monkeypatch, reader):
+        monkeypatch.setattr("src.cli.NotionReader", lambda: reader)
+
+    def test_warns_when_checked_item_is_not_pending(self, monkeypatch, capsys):
+        """回歸測試：勾選了但狀態不是「待處理」的項目不會被撿走，
+        以前完全沒有提示，使用者只會看到「沒有勾選待寫的項目」。"""
+        reader = FakeListReader(blocked=[_list_item("卡住的", status=schema.STATUS_WRITING)])
+        self._patch(monkeypatch, reader)
+
+        assert cli.main(["list"]) == 0
+
+        out = capsys.readouterr().out
+        assert "卡住的" in out
+        assert schema.STATUS_WRITING in out
+        assert schema.STATUS_PENDING in out  # 要說明怎麼救
+
+    def test_warning_shows_even_when_queue_is_empty(self, monkeypatch, capsys):
+        """最關鍵的情況：佇列空的時候更需要這個提示。"""
+        self._patch(monkeypatch, FakeListReader(pending=[], blocked=[_list_item("卡住的", status="已完成")]))
+
+        assert cli.main(["list"]) == 0
+        out = capsys.readouterr().out
+        assert "目前沒有勾選待寫的項目" in out
+        assert "卡住的" in out
+
+    def test_no_warning_when_nothing_blocked(self, monkeypatch, capsys):
+        self._patch(monkeypatch, FakeListReader(pending=[_list_item()], blocked=[]))
+
+        assert cli.main(["list"]) == 0
+        assert "不會被撿走" not in capsys.readouterr().out
+
+    def test_blocked_query_failure_does_not_break_list(self, monkeypatch, capsys):
+        """卡住項目只是附加資訊，查不到不該讓整個指令失敗。"""
+        self._patch(monkeypatch, FakeListReader(pending=[_list_item()], blocked_fails=True))
+
+        assert cli.main(["list"]) == 0
+        assert "標題" in capsys.readouterr().out

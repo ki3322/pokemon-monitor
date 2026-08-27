@@ -51,6 +51,25 @@ def _require_notion(client: NotionClient) -> bool:
     return False
 
 
+def _warn_blocked(reader: NotionReader) -> None:
+    """提示「勾了卻不會被撿走」的項目。
+
+    這類項目過去完全無聲：使用者只看得到「沒有勾選待寫的項目」，
+    卻不知道自己勾的那筆因為狀態不對而被濾掉了。
+
+    這只是附加資訊，查詢失敗就安靜略過——不該讓 list 本身失敗。
+    """
+    blocked = reader.blocked_items()
+    if not blocked:
+        return
+
+    print(f"\n⚠️  有 {len(blocked)} 筆已勾選但不會被撿走"
+          f"（撰稿只處理狀態為「{schema.STATUS_PENDING}」的項目）：\n")
+    for item in blocked:
+        print(f"  [{item.status or '(空)'}] {item.title}")
+    print(f"\n  要讓它們重新排隊，把狀態改回「{schema.STATUS_PENDING}」即可。")
+
+
 def command_list(args: argparse.Namespace) -> int:
     reader = NotionReader()
     if not _require_notion(reader.client):
@@ -60,15 +79,17 @@ def command_list(args: argparse.Namespace) -> int:
     if items is None:
         print("[Error] Notion 查詢失敗，請稍後再試（確認 token 與資料庫分享設定）")
         return 1
+
     if not items:
         print("目前沒有勾選待寫的項目。")
-        return 0
+    else:
+        print(f"勾選待寫的項目（{len(items)} 則）：\n")
+        for item in items:
+            print(f"  [{item.status}] {item.title}")
+            print(f"      page_id: {item.page_id}")
+            print(f"      來源: {item.source}  |  {item.link}\n")
 
-    print(f"勾選待寫的項目（{len(items)} 則）：\n")
-    for item in items:
-        print(f"  [{item.status}] {item.title}")
-        print(f"      page_id: {item.page_id}")
-        print(f"      來源: {item.source}  |  {item.link}\n")
+    _warn_blocked(reader)
     return 0
 
 
