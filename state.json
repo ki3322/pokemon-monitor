@@ -3,8 +3,6 @@
   "delivered": {
     "telegram": {
       "Pokemon GO Hub": [
-        "4a3ef94e46aa8e1b",
-        "5d70e6df3675c236",
         "7fecd3339958d45c",
         "b46d4aee8451045a",
         "9d9c387e9b201441",
@@ -102,7 +100,9 @@
         "71968d93bcc9378b",
         "376e300688855cb0",
         "d65f099bc6541a51",
-        "75c2c97b02c003d2"
+        "75c2c97b02c003d2",
+        "fb09425937eb8761",
+        "a40de795653ea8cd"
       ],
       "Serebii.net": [
         "bce8bd9959113e82",
@@ -242,7 +242,9 @@
         "649e27fcf7b868ef",
         "516c81e898b17bcd",
         "dd037a501f4d8637",
-        "ec9f6c2a104088d3"
+        "ec9f6c2a104088d3",
+        "9ba32a72d1da1f2c",
+        "352aad112ae5bd89"
       ],
       "玩具人": [
         "edab0c648f8d6890",
@@ -328,11 +330,10 @@
         "f5ee302346e0f3d4",
         "54c8662853461e42",
         "768816a604059991",
-        "14c5a00a72c73ec6"
+        "14c5a00a72c73ec6",
+        "2b056a46dfa17bb3"
       ],
       "twitter_PokemonGoApp": [
-        "e2e13c6a00c2dc6d",
-        "f4a505ec6c2f15db",
         "8c0ac566e312f2a6",
         "ede811d401868305",
         "bf6407bebdaf6d0f",
@@ -430,7 +431,9 @@
         "d3c568d3c407d7ac",
         "9b5cbaba0a24a600",
         "5026b403ffae27b5",
-        "bf94e9ab19495398"
+        "bf94e9ab19495398",
+        "600eba9eea30ab30",
+        "153c8ad0c1bbf0ee"
       ],
       "twitter_Zabi_pokeka": [
         "4ef67195866b0ffc",
@@ -637,8 +640,6 @@
         "85cc140df02ac045"
       ],
       "twitter_UniteVids": [
-        "38101f9d5d74c151",
-        "7928ae3feaa1bd8e",
         "e199ebb9975dd523",
         "c48247cfa6662a08",
         "12de191aa279fb1c",
@@ -736,10 +737,11 @@
         "3c1762476dde1533",
         "138e50a640b45a09",
         "45d02607e0c560d3",
-        "fe9cc340f0740473"
+        "fe9cc340f0740473",
+        "e70b3149b55e3dac",
+        "78e1de67f5188bab"
       ],
       "twitter_pokerapidinfo": [
-        "3e37939c6716db87",
         "ee676ec86a8681e7",
         "5c6ad23e5376fcbf",
         "71c6c4faeba4c907",
@@ -838,7 +840,8 @@
         "c1260d7a780415bd",
         "3c55e52ef6fb138a",
         "6f748333e15213b1",
-        "a3f91eb1dff33d6d"
+        "a3f91eb1dff33d6d",
+        "02d9c962def2fc9d"
       ],
       "twitter_pokepoke_GW": [
         "056ad37c94d88061",
@@ -955,8 +958,6 @@
     },
     "notion": {
       "Pokemon GO Hub": [
-        "4a3ef94e46aa8e1b",
-        "5d70e6df3675c236",
         "7fecd3339958d45c",
         "b46d4aee8451045a",
         "9d9c387e9b201441",
@@ -1054,7 +1055,9 @@
         "71968d93bcc9378b",
         "376e300688855cb0",
         "d65f099bc6541a51",
-        "75c2c97b02c003d2"
+        "75c2c97b02c003d2",
+        "fb09425937eb8761",
+        "a40de795653ea8cd"
       ],
       "Serebii.net": [
         "bce8bd9959113e82",
@@ -1194,7 +1197,9 @@
         "649e27fcf7b868ef",
         "516c81e898b17bcd",
         "dd037a501f4d8637",
-        "ec9f6c2a104088d3"
+        "ec9f6c2a104088d3",
+        "9ba32a72d1da1f2c",
+        "352aad112ae5bd89"
       ],
       "玩具人": [
         "edab0c648f8d6890",
@@ -1280,11 +1285,10 @@
         "f5ee302346e0f3d4",
         "54c8662853461e42",
         "768816a604059991",
-        "14c5a00a72c73ec6"
+        "14c5a00a72c73ec6",
+        "2b056a46dfa17bb3"
       ],
       "twitter_PokemonGoApp": [
-        "e2e13c6a00c2dc6d",
-        "f4a505ec6c2f15db",
         "8c0ac566e312f2a6",
         "ede811d401868305",
         "bf6407bebdaf6d0f",
@@ -1382,7 +1386,9 @@
         "d3c568d3c407d7ac",
         "9b5cbaba0a24a600",
         "5026b403ffae27b5",
-        "bf94e9ab19495398"
+        "bf94e9ab19495398",
+        "600eba9eea30ab30",
+        "153c8ad0c1bbf0ee"
       ],
       "twitter_Zabi_pokeka": [
         "4ef67195866b0ffc",
@@ -1589,8 +1595,6 @@
         "85cc140df02ac045"
       ],
       "twitter_UniteVids": [
-        "38101f9d5d74c151",
-        "7928ae3feaa1bd8e",
         "e199ebb9975dd523",
         "c48247cfa6662a08",
         "12de191aa279fb1c",
@@ -1688,10 +1692,11 @@
         "3c1762476dde1533",
         "138e50a640b45a09",
         "45d02607e0c560d3",
-        "fe9cc340f0740473"
+        "fe9cc340f0740473",
+        "e70b3149b55e3dac",
+        "78e1de67f5188bab"
       ],
       "twitter_pokerapidinfo": [
-        "3e37939c6716db87",
         "ee676ec86a8681e7",
         "5c6ad23e5376fcbf",
         "71c6c4faeba4c907",
@@ -1790,7 +1795,8 @@
         "c1260d7a780415bd",
         "3c55e52ef6fb138a",
         "6f748333e15213b1",
-        "a3f91eb1dff33d6d"
+        "a3f91eb1dff33d6d",
+        "02d9c962def2fc9d"
       ],
       "twitter_pokepoke_GW": [
         "056ad37c94d88061",
