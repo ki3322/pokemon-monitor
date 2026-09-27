@@ -25,6 +25,7 @@ from src.dashboard.collect import build_dashboard
 from src.dashboard.render import render_page
 from src.notion.cleanup import (
     DEFAULT_STALE_DAYS,
+    MIN_STALE_DAYS,
     CleanupTarget,
     NotionCleanup,
     excluded_source_names,
@@ -38,6 +39,20 @@ from src.notion.upgrade import NotionUpgrade
 from src.notion.writer import NotionWriter
 
 DEFAULT_DASHBOARD = os.path.join(DRAFTS_DIR, "dashboard.html")
+
+
+def _stale_days(value: str) -> int:
+    """--stale 的天數。0 或負數會讓截止時間落在現在或未來，等於清空整個資料庫。"""
+    try:
+        days = int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"要一個整數天數（收到 {value!r}）")
+
+    if days < MIN_STALE_DAYS:
+        raise argparse.ArgumentTypeError(
+            f"至少 1 天（收到 {days}）：0 或負數會匹配所有待處理項目"
+        )
+    return days
 
 
 def _require_notion(client: NotionClient) -> bool:
@@ -363,7 +378,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     cleanup_parser.add_argument(
         "--stale",
-        type=int,
+        type=_stale_days,
         default=0,
         metavar="DAYS",
         help=(

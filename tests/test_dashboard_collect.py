@@ -22,6 +22,10 @@ class FakeNewsReader:
         self.requested_limit = limit
         return None if self.fails else self.items
 
+    def checked_items(self):
+        """佇列用的查詢，不受 limit 限制。"""
+        return None if self.fails else [i for i in self.items if i.selected]
+
 
 def _news_item(title="標題"):
     return SelectedItem(

@@ -36,7 +36,15 @@ DASHBOARD = Dashboard(
     ),
     drafts=(DraftStat("3b8d2e5bf409", True, True),),
     news=NEWS,
+    checked=tuple(n for n in NEWS if n.selected),
 )
+
+
+def queue_rows(html: str) -> str:
+    """待撰稿佇列裡真正的列表部分，排除區塊內的警告文字。"""
+    section = html.split("待撰稿佇列")[1].split("最近新聞")[0]
+    match = re.search(r'<div class="rows">.*?</div>\s*</div>', section, re.S)
+    return match.group(0) if match else ""
 
 
 class TestThemeTokens:
@@ -156,10 +164,12 @@ class TestRenderPage:
         assert "待撰稿佇列" in self.HTML
         assert "皮卡丘新聞" in self.HTML
 
-    def test_done_item_not_in_queue_but_in_recent_list(self):
+    def test_done_item_not_in_queue_rows(self):
+        """已完成的項目不進佇列列表，但因為還勾著，會被標示為「不會被撿走」。"""
         assert "最近新聞" in self.HTML
-        assert "伊布新聞" in self.HTML  # 已完成：只出現在最近新聞
-        assert self.HTML.index("伊布新聞") > self.HTML.index("最近新聞")
+        assert "伊布新聞" not in queue_rows(self.HTML)
+        assert "伊布新聞" in self.HTML
+        assert "不會被撿走" in self.HTML
 
     def test_news_title_links_to_source(self):
         assert 'href="https://news.example/pikachu?a=1&amp;b=2"' in self.HTML
@@ -266,3 +276,36 @@ class TestTilt:
 
     def test_stays_subtle(self):
         assert all(abs(tilt(i)) <= 2.0 for i in range(20))
+
+
+BLOCKED_NEWS = (
+    NewsStat("待處理的", "", "Serebii.net", "待處理", selected=True, days_old=0),
+    NewsStat("撰寫中的", "", "Serebii.net", "撰寫中", selected=True, days_old=1),
+)
+
+
+class TestBlockedOnDashboard:
+    HTML = render_page(
+        Dashboard("now", notion_configured=True, news=BLOCKED_NEWS, checked=BLOCKED_NEWS)
+    )
+
+    def test_queue_holds_only_the_pending_one(self):
+        rows = queue_rows(self.HTML)
+        assert "待處理的" in rows
+        assert "撰寫中的" not in rows
+
+    def test_blocked_item_is_still_surfaced(self):
+        """回歸測試：修正佇列判斷後，這些項目不能從儀表板整個消失。"""
+        assert "不會被撿走" in self.HTML
+        assert "撰寫中的" in self.HTML
+
+    def test_no_note_when_nothing_blocked(self):
+        html = render_page(
+            Dashboard(
+                "now",
+                notion_configured=True,
+                news=(BLOCKED_NEWS[0],),
+                checked=(BLOCKED_NEWS[0],),
+            )
+        )
+        assert "不會被撿走" not in html

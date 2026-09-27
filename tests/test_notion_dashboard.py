@@ -253,7 +253,13 @@ def _table_rows(block):
 
 class TestNewsBlocks:
     def _dashboard(self, news):
-        return Dashboard("now", state_version=STATE_VERSION, notion_configured=True, news=news)
+        return Dashboard(
+            "now",
+            state_version=STATE_VERSION,
+            notion_configured=True,
+            news=news,
+            checked=tuple(n for n in news if n.selected),
+        )
 
     def test_two_tables_when_news_present(self):
         blocks = nd.news_blocks(self._dashboard(_news(3, selected=True)))
@@ -272,14 +278,30 @@ class TestNewsBlocks:
         title_cell = _table_rows(table)[1]["table_row"]["cells"][1]
         assert "link" not in title_cell[0]["text"]
 
-    def test_queue_only_contains_selected_and_unfinished(self):
+    def test_queue_only_contains_checked_and_still_pending(self):
+        """佇列＝已勾選且狀態為待處理，與 pending_filter 一致。"""
+        checked = _news(2, selected=True, status=nd.schema.STATUS_PENDING)
         dashboard = Dashboard(
             "now",
             notion_configured=True,
-            news=_news(2, selected=True) + _news(3, selected=False),
+            news=checked + _news(3, selected=False),
+            checked=checked,
         )
         queue_table = next(b for b in nd.news_blocks(dashboard) if b["type"] == "table")
-        assert len(_table_rows(queue_table)) == 1 + 2  # 表頭 + 兩則勾選的
+        assert len(_table_rows(queue_table)) == 1 + 2  # 表頭 + 兩則待處理的
+
+    def test_checked_but_not_pending_leaves_the_queue_empty(self):
+        """狀態離開待處理後佇列就空了，但要用警告把它們交代清楚。"""
+        writing = _news(2, selected=True, status=nd.schema.STATUS_WRITING)
+        blocks = nd.news_blocks(
+            Dashboard("now", notion_configured=True, news=writing, checked=writing)
+        )
+
+        # 佇列空 → 只剩「最近新聞」一張表
+        assert _types(blocks).count("table") == 1
+        text = _all_text(blocks)
+        assert "沒有勾選待寫的項目" in text
+        assert "不會被撿走" in text
 
     def test_rows_capped_at_limit(self):
         """回歸測試：表格的每一列都是區塊，超量會撞到單次 100 個區塊的上限。"""
@@ -423,3 +445,30 @@ class TestFunnelGuard:
         blocks = nd.funnel_blocks(DASHBOARD)
         assert _types(blocks) == ["paragraph"]
         assert "column_list" not in _types(blocks)
+
+
+class TestNotionQueueMatchesHtml:
+    """Notion 版與 HTML 版的佇列判斷必須一致。"""
+
+    def _dashboard(self):
+        news = (
+            NewsStat("待處理的", "", "Serebii.net", nd.schema.STATUS_PENDING, True, 0),
+            NewsStat("撰寫中的", "", "Serebii.net", nd.schema.STATUS_WRITING, True, 1),
+        )
+        return Dashboard("now", notion_configured=True, news=news, checked=news)
+
+    def test_queue_excludes_non_pending(self):
+        text = _all_text(nd.news_blocks(self._dashboard()))
+        queue = text.split("待撰稿佇列")[1].split("最近新聞")[0]
+        assert "待處理的" in queue
+
+    def test_blocked_item_is_surfaced(self):
+        """回歸測試：不在佇列裡的勾選項目仍要被提到，否則變回無聲死角。"""
+        assert "不會被撿走" in _all_text(nd.news_blocks(self._dashboard()))
+
+    def test_no_warning_when_nothing_blocked(self):
+        only_pending = (NewsStat("待處理的", "", "S", nd.schema.STATUS_PENDING, True, 0),)
+        clean = Dashboard(
+            "now", notion_configured=True, news=only_pending, checked=only_pending
+        )
+        assert "不會被撿走" not in _all_text(nd.news_blocks(clean))

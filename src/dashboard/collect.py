@@ -53,6 +53,19 @@ def list_drafts(directory: str = DRAFTS_DIR) -> List[str]:
         return []
 
 
+def fetch_checked(news_reader, now: datetime) -> Optional[Tuple[NewsStat, ...]]:
+    """抓所有已勾選的項目（佇列用），不受最近 N 則的限制。"""
+    if news_reader is None or not news_reader.is_configured():
+        return None
+
+    items = news_reader.checked_items()
+    if items is None:
+        print("[Warn] Notion 查詢失敗，本次儀表板不含待撰稿佇列")
+        return None
+
+    return build_news(items, now)
+
+
 def fetch_news(news_reader, now: datetime) -> Optional[Tuple[NewsStat, ...]]:
     """從 Notion 抓最近的新聞。
 
@@ -86,4 +99,5 @@ def build_dashboard(
         groups=build_groups(RSS_SOURCES, SCRAPE_SOURCES, TWITTER_ACCOUNTS, delivered),
         drafts=build_drafts(list_drafts(drafts_dir)),
         news=fetch_news(news_reader, now),
+        checked=fetch_checked(news_reader, now),
     )

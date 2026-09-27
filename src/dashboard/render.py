@@ -192,12 +192,20 @@ def render_news_sections(dashboard: Dashboard) -> List[str]:
     counts = " · ".join(f"{status} {count}" for status, count in dashboard.news_status_counts)
     recent_note = f"最近 {len(dashboard.news)} 則" + (f"｜{counts}" if counts else "")
 
+    queue_note = f"已勾選「寫成文章」且狀態為「{schema.STATUS_PENDING}」"
+    body = render_news_rows(dashboard.queue, "沒有勾選待寫的項目。到 Notion 勾選「寫成文章」。")
+
+    if dashboard.blocked:
+        # 這些項目不在佇列裡也不會被撿走。不顯示的話就變回無聲的死角。
+        body += (
+            f'<div class="empty">⚠️ 另有 {len(dashboard.blocked)} 筆已勾選但'
+            f'狀態不是「{schema.STATUS_PENDING}」，不會被撿走：'
+            + "、".join(escape_text(n.title) for n in dashboard.blocked)
+            + f"。要重新排隊請把狀態改回「{schema.STATUS_PENDING}」。</div>"
+        )
+
     return [
-        _section(
-            "待撰稿佇列",
-            "已勾選「寫成文章」且未完成",
-            render_news_rows(dashboard.queue, "沒有勾選待寫的項目。到 Notion 勾選「寫成文章」。"),
-        ),
+        _section("待撰稿佇列", queue_note, body),
         _section(
             "最近新聞",
             recent_note,

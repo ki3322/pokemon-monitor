@@ -332,3 +332,25 @@ class TestBlockedItems:
 
     def test_reports_query_failure(self):
         assert NotionReader(FakeNotionClient(query_fails=True)).blocked_items() is None
+
+
+class TestCheckedItems:
+    """所有已勾選的項目，不受「最近 N 則」的視窗限制。"""
+
+    def test_filters_on_the_checkbox_only(self):
+        client = FakeNotionClient(pages=[{"id": "p", "properties": {}}])
+        NotionReader(client).checked_items()
+
+        assert client.last_filter == {
+            "property": schema.SELECTED,
+            "checkbox": {"equals": True},
+        }
+
+    def test_no_limit_applied(self):
+        """回歸測試：佇列不能被 30 筆的視窗截斷——舊項目會整個消失。"""
+        client = FakeNotionClient(pages=[])
+        NotionReader(client).checked_items()
+        assert client.last_limit is None
+
+    def test_reports_query_failure(self):
+        assert NotionReader(FakeNotionClient(query_fails=True)).checked_items() is None

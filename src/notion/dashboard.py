@@ -10,6 +10,7 @@ from typing import Dict, List, Optional, Sequence
 from src.dashboard.stats import Dashboard, DraftStat, GroupStat, NewsStat
 from src.models import display_group
 from src.notion import blocks as nb
+from src.notion import schema
 from src.notion.client import NotionClient
 from src.state import MAX_ITEMS_PER_SOURCE, STATE_VERSION
 
@@ -192,10 +193,27 @@ def news_blocks(dashboard: Dashboard) -> List[Dict]:
         )
         return [nb.heading_block("新聞", level=2), nb.callout_block(reason, emoji="🔌", color=MUTED)]
 
+    blocked_note = []
+    if dashboard.blocked:
+        # 不在佇列裡也不會被撿走；不提的話就變回無聲的死角
+        titles = "、".join(n.title for n in dashboard.blocked)
+        blocked_note = [
+            nb.callout_block(
+                f"另有 {len(dashboard.blocked)} 筆已勾選但狀態不是"
+                f"「{schema.STATUS_PENDING}」，不會被撿走：{titles}。"
+                f"要重新排隊請把狀態改回「{schema.STATUS_PENDING}」。",
+                emoji="⚠️",
+                color=MUTED,
+            )
+        ]
+
     return [
         nb.heading_block("待撰稿佇列", level=2),
-        nb.paragraph_block("已勾選「寫成文章」且未完成", color=MUTED),
+        nb.paragraph_block(
+            f"已勾選「寫成文章」且狀態為「{schema.STATUS_PENDING}」", color=MUTED
+        ),
         *news_table(dashboard.queue, "沒有勾選待寫的項目。勾選下方任一則就會出現在這裡。"),
+        *blocked_note,
         nb.heading_block("最近新聞", level=2),
         nb.paragraph_block(_recent_note(dashboard), color=MUTED),
         *news_table(dashboard.news, "資料庫還沒有新聞，等下一輪監控寫入。"),

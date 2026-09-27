@@ -104,6 +104,9 @@ class Dashboard:
     drafts: Tuple[DraftStat, ...] = field(default_factory=tuple)
     # None = 沒抓（Notion 未設定或查詢失敗）；空 tuple = 資料庫是空的
     news: Optional[Tuple[NewsStat, ...]] = None
+    # 所有已勾選的項目，不受 news 的「最近 N 則」視窗限制。
+    # 佇列必須用這個：等審很久的稿子會落在視窗外，用 news 推導會整個消失。
+    checked: Optional[Tuple[NewsStat, ...]] = None
 
     @property
     def website_groups(self) -> Tuple[GroupStat, ...]:
@@ -128,10 +131,25 @@ class Dashboard:
 
     @property
     def queue(self) -> Tuple[NewsStat, ...]:
-        """待撰稿佇列：已勾選「寫成文章」且尚未完成的項目。"""
-        if not self.news:
+        """待撰稿佇列：真的會被撿走的項目。
+
+        判斷必須與 reader.pending_filter 一致（已勾選、且狀態等於待處理）。
+        寫成「狀態 ≠ 已完成」會把「撰寫中」也算進佇列，但那些永遠不會被撿走。
+        """
+        if not self.checked:
             return ()
-        return tuple(n for n in self.news if n.selected and n.status != schema.STATUS_DONE)
+        return tuple(n for n in self.checked if n.status == schema.STATUS_PENDING)
+
+    @property
+    def blocked(self) -> Tuple[NewsStat, ...]:
+        """已勾選、但狀態不是待處理——勾了卻不會被撿走的項目。
+
+        與 queue 互補（對應 reader.blocked_filter）。要顯示出來，
+        否則這些項目會從儀表板整個消失，變回無聲的死角。
+        """
+        if not self.checked:
+            return ()
+        return tuple(n for n in self.checked if n.status != schema.STATUS_PENDING)
 
     @property
     def news_status_counts(self) -> Tuple[Tuple[str, int], ...]:

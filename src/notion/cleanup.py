@@ -21,6 +21,9 @@ REASON_EXCLUDED = "來源已排除"
 # 沒勾選的新聞放這麼多天後自動清掉
 DEFAULT_STALE_DAYS = 2
 
+# 天數下限：更小的值會讓截止時間落在現在或未來
+MIN_STALE_DAYS = 1
+
 
 @dataclass(frozen=True)
 class CleanupTarget:
@@ -70,6 +73,15 @@ def stale_clause(days: int, now: Optional[datetime] = None) -> Dict:
         就算事後被取消勾選，也不該把稿子連頁面一起刪掉。
       - 發現時間夠舊：才有機會被看到。
     """
+    # 負數或 0 會把截止時間推到現在或未來，於是「超過 N 天沒人要」變成
+    # 「每一筆待處理項目」——整個資料庫會被封存。這是不可逆的規模，
+    # 必須在組出條件之前就擋下來。
+    if days < MIN_STALE_DAYS:
+        raise ValueError(
+            f"--stale 至少 1 天（收到 {days}）：0 或負數的截止時間會落在現在或未來，"
+            "等於封存所有待處理項目"
+        )
+
     now = now or datetime.now(timezone.utc)
     cutoff = now - timedelta(days=days)
 

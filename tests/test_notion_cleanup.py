@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+import pytest
+
 from src.notion import schema
 from src.notion.cleanup import (
     REASON_EXCLUDED,
@@ -218,3 +220,29 @@ class TestStaleTargets:
         )
 
         assert targets[0].reason == REASON_EXCLUDED
+
+
+class TestStaleDaysValidation:
+    """回歸測試：負數會把截止時間推到未來，匹配到每一筆待處理項目。
+
+    實測 --stale -1 產生 before=明天，等於「封存整個資料庫」。
+    """
+
+    def test_negative_days_rejected(self):
+        with pytest.raises(ValueError, match="至少 1 天"):
+            stale_clause(-1, NOW)
+
+    def test_zero_days_rejected(self):
+        """0 天的截止時間就是「現在」，同樣會掃掉所有待處理項目。"""
+        with pytest.raises(ValueError, match="至少 1 天"):
+            stale_clause(0, NOW)
+
+    def test_one_day_allowed(self):
+        assert stale_clause(1, NOW)["and"]
+
+    def test_cutoff_never_lands_in_the_future(self):
+        for days in (1, 2, 30):
+            found = next(
+                c for c in stale_clause(days, NOW)["and"] if c["property"] == schema.FOUND_AT
+            )
+            assert found["date"]["before"] < NOW.isoformat()

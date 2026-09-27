@@ -127,3 +127,16 @@ class NotionReader:
         if pages is None:
             return None
         return [to_selected_item(page) for page in pages]
+
+    def checked_items(self) -> Optional[List[SelectedItem]]:
+        """所有已勾選「寫成文章」的項目，不分狀態、不限筆數。
+
+        儀表板的佇列用這個而不是「最近 N 則」：勾選的項目可能很舊
+        （例如等審很久的稿子），被視窗截掉就會從儀表板整個消失。
+        """
+        pages = self.client.query_database(
+            {"property": schema.SELECTED, "checkbox": {"equals": True}}
+        )
+        if pages is None:
+            return None
+        return [to_selected_item(page) for page in pages]

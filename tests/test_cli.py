@@ -441,3 +441,24 @@ class TestListBlockedWarning:
 
         assert cli.main(["list"]) == 0
         assert "標題" in capsys.readouterr().out
+
+
+class TestStaleArgValidation:
+    """回歸測試：--stale 的邊界檢查要在解析階段就擋下來。"""
+
+    def test_negative_exits_with_usage_error(self, capsys):
+        with pytest.raises(SystemExit) as exc:
+            cli.main(["notion-cleanup", "--stale", "-1"])
+        assert exc.value.code == 2
+        assert "至少 1 天" in capsys.readouterr().err
+
+    def test_zero_exits_with_usage_error(self):
+        with pytest.raises(SystemExit) as exc:
+            cli.main(["notion-cleanup", "--stale", "0"])
+        assert exc.value.code == 2
+
+    def test_positive_accepted(self):
+        assert cli.build_parser().parse_args(["notion-cleanup", "--stale", "2"]).stale == 2
+
+    def test_omitted_defaults_to_off(self):
+        assert cli.build_parser().parse_args(["notion-cleanup"]).stale == 0

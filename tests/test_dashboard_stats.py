@@ -213,21 +213,25 @@ class TestBuildNews:
 
 class TestNewsOnDashboard:
     def _dashboard(self):
+        news = build_news(
+            [
+                _selected_item(title="勾選待寫", selected=True, status="待處理"),
+                _selected_item(title="已完成的", selected=True, status=schema.STATUS_DONE),
+                _selected_item(title="沒勾的", selected=False, status="待處理"),
+                _selected_item(title="撰寫中的", selected=True, status=schema.STATUS_WRITING),
+            ],
+            now=NOW,
+        )
         return Dashboard(
-            generated_at="now",
-            news=build_news(
-                [
-                    _selected_item(title="勾選待寫", selected=True, status="待處理"),
-                    _selected_item(title="已完成的", selected=True, status=schema.STATUS_DONE),
-                    _selected_item(title="沒勾的", selected=False, status="待處理"),
-                    _selected_item(title="撰寫中的", selected=True, status=schema.STATUS_WRITING),
-                ],
-                now=NOW,
-            ),
+            generated_at="now", news=news, checked=tuple(n for n in news if n.selected)
         )
 
-    def test_queue_is_selected_and_not_done(self):
-        assert [n.title for n in self._dashboard().queue] == ["勾選待寫", "撰寫中的"]
+    def test_queue_is_selected_and_still_pending(self):
+        """撿取規則是「狀態等於待處理」，所以「撰寫中的」不算在佇列裡。"""
+        assert [n.title for n in self._dashboard().queue] == ["勾選待寫"]
+
+    def test_blocked_holds_the_checked_ones_that_left_pending(self):
+        assert [n.title for n in self._dashboard().blocked] == ["已完成的", "撰寫中的"]
 
     def test_status_counts_follow_schema_order_and_skip_zero(self):
         assert self._dashboard().news_status_counts == (
@@ -241,3 +245,50 @@ class TestNewsOnDashboard:
         assert dashboard.news is None
         assert dashboard.queue == ()
         assert dashboard.news_status_counts == ()
+
+
+class TestQueueMatchesPickupRule:
+    """回歸測試：佇列的判斷必須和 pending_filter 一致。
+
+    PR #6 把撿取規則從「狀態 ≠ 已完成」改成「狀態 = 待處理」，
+    但儀表板沒跟著改，於是「撰寫中」的稿子會出現在待撰稿佇列裡，
+    而實際上永遠不會被撿走——正是 list 警告要解決的那個死角。
+    """
+
+    def _dashboard(self):
+        news = build_news(
+            [
+                _selected_item(title="待處理的", selected=True, status=schema.STATUS_PENDING),
+                _selected_item(title="撰寫中的", selected=True, status=schema.STATUS_WRITING),
+                _selected_item(title="略過的", selected=True, status=schema.STATUS_SKIPPED),
+                _selected_item(title="已完成的", selected=True, status=schema.STATUS_DONE),
+                _selected_item(title="沒勾的", selected=False, status=schema.STATUS_PENDING),
+            ],
+            now=NOW,
+        )
+        return Dashboard(
+            generated_at="now", news=news, checked=tuple(n for n in news if n.selected)
+        )
+
+    def test_queue_only_holds_pending(self):
+        assert [n.title for n in self._dashboard().queue] == ["待處理的"]
+
+    def test_blocked_holds_the_rest_of_the_checked_ones(self):
+        assert [n.title for n in self._dashboard().blocked] == ["撰寫中的", "略過的", "已完成的"]
+
+    def test_queue_and_blocked_partition_the_checked_items(self):
+        """兩者互補且不重疊，加起來就是所有勾選的項目。"""
+        d = self._dashboard()
+        checked = [n for n in d.news if n.selected]
+
+        assert len(d.queue) + len(d.blocked) == len(checked)
+        assert not (set(n.title for n in d.queue) & set(n.title for n in d.blocked))
+
+    def test_unchecked_never_appears_in_either(self):
+        d = self._dashboard()
+        assert "沒勾的" not in [n.title for n in d.queue] + [n.title for n in d.blocked]
+
+    def test_no_news_means_both_empty(self):
+        d = Dashboard(generated_at="now")
+        assert d.queue == ()
+        assert d.blocked == ()
