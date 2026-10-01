@@ -3,7 +3,6 @@
   "delivered": {
     "telegram": {
       "Pokemon GO Hub": [
-        "737b0bfa2bfcb798",
         "9a81c9ad991644d0",
         "026a40c009a27705",
         "110fa82c92a295b8",
@@ -102,7 +101,8 @@
         "69fe5db6c29fd6c2",
         "5e6d383f03f555e5",
         "46441af7b183e824",
-        "1c7fe261f1b02ed7"
+        "1c7fe261f1b02ed7",
+        "82efce8f90db1a83"
       ],
       "Serebii.net": [
         "bce8bd9959113e82",
@@ -358,8 +358,6 @@
         "f050cce942c923f2"
       ],
       "twitter_PokemonGoApp": [
-        "cceaf0f3d9df10c4",
-        "6c13abf20fb2dee5",
         "efe9bbc558483a55",
         "85068905364bb9c1",
         "c9c3df72b9bfe17d",
@@ -457,7 +455,9 @@
         "9e9b1f97cae2c1e1",
         "f8b85f0642c35f3d",
         "bd8380d492501b5b",
-        "d0e0a3a1883b9741"
+        "d0e0a3a1883b9741",
+        "92c5c57f47e5a318",
+        "04ab1237258a3aa1"
       ],
       "twitter_Zabi_pokeka": [
         "26f9c057d12e1527",
@@ -562,7 +562,6 @@
         "12ed73d4ad53dca4"
       ],
       "twitter_pokecamatomeru": [
-        "b25d5bc166c52384",
         "b11d6a688fd8449a",
         "1a645ab9cc544375",
         "5eaef91bcc4a133c",
@@ -661,11 +660,10 @@
         "de9c2ecb946052e3",
         "a005020dbdfb6928",
         "8188ceafa109fc36",
-        "b880569529cbc4f8"
+        "b880569529cbc4f8",
+        "376a3e24fdf3a331"
       ],
       "twitter_UniteVids": [
-        "6a6565f53390e38e",
-        "8a111f6e4bcc404a",
         "f4a19ba9ca214a62",
         "b9be742957a71d34",
         "eeff5f69fac02379",
@@ -763,7 +761,9 @@
         "cd35016dc9afc1f4",
         "ab6da6752d2993bc",
         "eaa3048fba14cb85",
-        "a7a999e9a7834beb"
+        "a7a999e9a7834beb",
+        "1ea4d71a8e221d15",
+        "53aab8c361c70750"
       ],
       "twitter_pokerapidinfo": [
         "90bd70f06030af65",
@@ -990,12 +990,12 @@
         "c00c8ee28569c284",
         "ecfe9ad82cc05bbd",
         "390a568e3d00bc73",
-        "c18a87b29ffb2b22"
+        "c18a87b29ffb2b22",
+        "e494fbebe31e3daa"
       ]
     },
     "notion": {
       "Pokemon GO Hub": [
-        "737b0bfa2bfcb798",
         "9a81c9ad991644d0",
         "026a40c009a27705",
         "110fa82c92a295b8",
@@ -1094,7 +1094,8 @@
         "69fe5db6c29fd6c2",
         "5e6d383f03f555e5",
         "46441af7b183e824",
-        "1c7fe261f1b02ed7"
+        "1c7fe261f1b02ed7",
+        "82efce8f90db1a83"
       ],
       "Serebii.net": [
         "bce8bd9959113e82",
@@ -1350,8 +1351,6 @@
         "f050cce942c923f2"
       ],
       "twitter_PokemonGoApp": [
-        "cceaf0f3d9df10c4",
-        "6c13abf20fb2dee5",
         "efe9bbc558483a55",
         "85068905364bb9c1",
         "c9c3df72b9bfe17d",
@@ -1449,7 +1448,9 @@
         "9e9b1f97cae2c1e1",
         "f8b85f0642c35f3d",
         "bd8380d492501b5b",
-        "d0e0a3a1883b9741"
+        "d0e0a3a1883b9741",
+        "92c5c57f47e5a318",
+        "04ab1237258a3aa1"
       ],
       "twitter_Zabi_pokeka": [
         "26f9c057d12e1527",
@@ -1554,7 +1555,6 @@
         "12ed73d4ad53dca4"
       ],
       "twitter_pokecamatomeru": [
-        "b25d5bc166c52384",
         "b11d6a688fd8449a",
         "1a645ab9cc544375",
         "5eaef91bcc4a133c",
@@ -1653,11 +1653,10 @@
         "de9c2ecb946052e3",
         "a005020dbdfb6928",
         "8188ceafa109fc36",
-        "b880569529cbc4f8"
+        "b880569529cbc4f8",
+        "376a3e24fdf3a331"
       ],
       "twitter_UniteVids": [
-        "6a6565f53390e38e",
-        "8a111f6e4bcc404a",
         "f4a19ba9ca214a62",
         "b9be742957a71d34",
         "eeff5f69fac02379",
@@ -1755,7 +1754,9 @@
         "cd35016dc9afc1f4",
         "ab6da6752d2993bc",
         "eaa3048fba14cb85",
-        "a7a999e9a7834beb"
+        "a7a999e9a7834beb",
+        "1ea4d71a8e221d15",
+        "53aab8c361c70750"
       ],
       "twitter_pokerapidinfo": [
         "90bd70f06030af65",
@@ -1982,7 +1983,8 @@
         "c00c8ee28569c284",
         "ecfe9ad82cc05bbd",
         "390a568e3d00bc73",
-        "c18a87b29ffb2b22"
+        "c18a87b29ffb2b22",
+        "e494fbebe31e3daa"
       ]
     }
   },
