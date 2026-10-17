@@ -493,9 +493,6 @@
         "dc732b0d6c83e405"
       ],
       "twitter_Zabi_pokeka": [
-        "7093341ef340df64",
-        "93dd28b355496107",
-        "38ab35000ada6b5d",
         "05cff58520e8e8cd",
         "d23856dfd5ffa4b5",
         "c923013a3d9d9523",
@@ -592,10 +589,12 @@
         "70f8f18d9ec11348",
         "411f5e1aeb03e8b6",
         "77b37625b298cea7",
-        "c00eb52db1474995"
+        "c00eb52db1474995",
+        "eaaf5597104ebdb6",
+        "6750ad3ed2a52e51",
+        "f0ba95944ff68e12"
       ],
       "twitter_pokecamatomeru": [
-        "bb07972a0794da1d",
         "b35be2a716f6d216",
         "dc4b01367163570f",
         "542bf30bdd4b6605",
@@ -694,7 +693,8 @@
         "1b179b37220032c9",
         "dbb0040b9dfed68a",
         "02182434ddb19c5d",
-        "7071a8937658e2c8"
+        "7071a8937658e2c8",
+        "19d1afff5c80ed34"
       ],
       "twitter_UniteVids": [
         "ce68770a6b9c5a97",
@@ -799,11 +799,6 @@
         "3a6f5995461701f0"
       ],
       "twitter_pokerapidinfo": [
-        "e518ee3c19b2ed02",
-        "c1260d7a780415bd",
-        "3c55e52ef6fb138a",
-        "6f748333e15213b1",
-        "a3f91eb1dff33d6d",
         "02d9c962def2fc9d",
         "775ad31aed607c31",
         "a065985c764b4008",
@@ -898,7 +893,12 @@
         "216bcd58d034837e",
         "9805720849b4285b",
         "abc119ccb5e9b006",
-        "d9796fec0a16366c"
+        "d9796fec0a16366c",
+        "d7003384c9263664",
+        "ddaa4925292bf7a0",
+        "9ee0c988ef584c8e",
+        "d689265cefaac451",
+        "e3a00d84004cab80"
       ],
       "twitter_pokepoke_GW": [
         "056ad37c94d88061",
@@ -945,7 +945,6 @@
         "6652e06b4b64dd73"
       ],
       "twitter_pokemongoappko": [
-        "ee624140b0fb1648",
         "f32b0dadc50c7d7b",
         "8e1deefcb607dd48",
         "10eb0dfdeab45345",
@@ -1044,7 +1043,8 @@
         "87a48f27a5d5e939",
         "03c90c915349d21b",
         "4de729dce6087d4a",
-        "445e4e3e7df5fa8a"
+        "445e4e3e7df5fa8a",
+        "613a528d5a1fb7e9"
       ]
     },
     "notion": {
@@ -1539,9 +1539,6 @@
         "dc732b0d6c83e405"
       ],
       "twitter_Zabi_pokeka": [
-        "7093341ef340df64",
-        "93dd28b355496107",
-        "38ab35000ada6b5d",
         "05cff58520e8e8cd",
         "d23856dfd5ffa4b5",
         "c923013a3d9d9523",
@@ -1638,10 +1635,12 @@
         "70f8f18d9ec11348",
         "411f5e1aeb03e8b6",
         "77b37625b298cea7",
-        "c00eb52db1474995"
+        "c00eb52db1474995",
+        "eaaf5597104ebdb6",
+        "6750ad3ed2a52e51",
+        "f0ba95944ff68e12"
       ],
       "twitter_pokecamatomeru": [
-        "bb07972a0794da1d",
         "b35be2a716f6d216",
         "dc4b01367163570f",
         "542bf30bdd4b6605",
@@ -1740,7 +1739,8 @@
         "1b179b37220032c9",
         "dbb0040b9dfed68a",
         "02182434ddb19c5d",
-        "7071a8937658e2c8"
+        "7071a8937658e2c8",
+        "19d1afff5c80ed34"
       ],
       "twitter_UniteVids": [
         "ce68770a6b9c5a97",
@@ -1845,11 +1845,6 @@
         "3a6f5995461701f0"
       ],
       "twitter_pokerapidinfo": [
-        "e518ee3c19b2ed02",
-        "c1260d7a780415bd",
-        "3c55e52ef6fb138a",
-        "6f748333e15213b1",
-        "a3f91eb1dff33d6d",
         "02d9c962def2fc9d",
         "775ad31aed607c31",
         "a065985c764b4008",
@@ -1944,7 +1939,12 @@
         "216bcd58d034837e",
         "9805720849b4285b",
         "abc119ccb5e9b006",
-        "d9796fec0a16366c"
+        "d9796fec0a16366c",
+        "d7003384c9263664",
+        "ddaa4925292bf7a0",
+        "9ee0c988ef584c8e",
+        "d689265cefaac451",
+        "e3a00d84004cab80"
       ],
       "twitter_pokepoke_GW": [
         "056ad37c94d88061",
@@ -1991,7 +1991,6 @@
         "6652e06b4b64dd73"
       ],
       "twitter_pokemongoappko": [
-        "ee624140b0fb1648",
         "f32b0dadc50c7d7b",
         "8e1deefcb607dd48",
         "10eb0dfdeab45345",
@@ -2090,7 +2089,8 @@
         "87a48f27a5d5e939",
         "03c90c915349d21b",
         "4de729dce6087d4a",
-        "445e4e3e7df5fa8a"
+        "445e4e3e7df5fa8a",
+        "613a528d5a1fb7e9"
       ]
     }
   },
