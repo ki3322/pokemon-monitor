@@ -3,7 +3,6 @@
   "delivered": {
     "telegram": {
       "Pokemon GO Hub": [
-        "f31a2a266cb1c015",
         "1dc1cd23fdf16888",
         "df0e89a37d2e2bee",
         "a4790a1489ad9100",
@@ -102,7 +101,8 @@
         "dd3eb7f25c6d0cde",
         "5f3ad91e1d8c0e90",
         "1fe79f561de33426",
-        "d653ae1aec818500"
+        "d653ae1aec818500",
+        "9b438b3be018aea0"
       ],
       "Serebii.net": [
         "bce8bd9959113e82",
@@ -716,8 +716,6 @@
         "baac83a81151bfa1"
       ],
       "twitter_UniteVids": [
-        "6d9a8c8cb0974b41",
-        "67aa0e5f1d0a54a9",
         "db5553ac78c545dd",
         "f00ef0b3df6fa2d8",
         "998487a06f3574e1",
@@ -815,7 +813,9 @@
         "aa7fbeff4afcceab",
         "71f8be57d668900a",
         "385e595fd9449f1f",
-        "e46ee7449f435826"
+        "e46ee7449f435826",
+        "bf0d47e31c3f6e83",
+        "f837fad27ccfc487"
       ],
       "twitter_pokerapidinfo": [
         "1817e3613babddc6",
@@ -968,7 +968,6 @@
         "9fee905134271c42"
       ],
       "twitter_pokemongoappko": [
-        "9ab74f19020d6620",
         "80342fa8a845cc66",
         "953a72331a1e1e4d",
         "b1c700150c64f5a0",
@@ -1067,12 +1066,12 @@
         "76757da0d7d33ff7",
         "f4f7bcedce520954",
         "1c74cd3a27569971",
-        "415ceba942cbaedb"
+        "415ceba942cbaedb",
+        "695e8f8be8b16114"
       ]
     },
     "notion": {
       "Pokemon GO Hub": [
-        "f31a2a266cb1c015",
         "1dc1cd23fdf16888",
         "df0e89a37d2e2bee",
         "a4790a1489ad9100",
@@ -1171,7 +1170,8 @@
         "dd3eb7f25c6d0cde",
         "5f3ad91e1d8c0e90",
         "1fe79f561de33426",
-        "d653ae1aec818500"
+        "d653ae1aec818500",
+        "9b438b3be018aea0"
       ],
       "Serebii.net": [
         "bce8bd9959113e82",
@@ -1785,8 +1785,6 @@
         "baac83a81151bfa1"
       ],
       "twitter_UniteVids": [
-        "6d9a8c8cb0974b41",
-        "67aa0e5f1d0a54a9",
         "db5553ac78c545dd",
         "f00ef0b3df6fa2d8",
         "998487a06f3574e1",
@@ -1884,7 +1882,9 @@
         "aa7fbeff4afcceab",
         "71f8be57d668900a",
         "385e595fd9449f1f",
-        "e46ee7449f435826"
+        "e46ee7449f435826",
+        "bf0d47e31c3f6e83",
+        "f837fad27ccfc487"
       ],
       "twitter_pokerapidinfo": [
         "1817e3613babddc6",
@@ -2037,7 +2037,6 @@
         "9fee905134271c42"
       ],
       "twitter_pokemongoappko": [
-        "9ab74f19020d6620",
         "80342fa8a845cc66",
         "953a72331a1e1e4d",
         "b1c700150c64f5a0",
@@ -2136,7 +2135,8 @@
         "76757da0d7d33ff7",
         "f4f7bcedce520954",
         "1c74cd3a27569971",
-        "415ceba942cbaedb"
+        "415ceba942cbaedb",
+        "695e8f8be8b16114"
       ]
     }
   },
