@@ -418,8 +418,6 @@
         "4e8f7b80c356d76e"
       ],
       "twitter_PokemonGoApp": [
-        "25af1c5151d170c0",
-        "c1f06e89fa2682b7",
         "d0b64ed18c85e79a",
         "87f63bd60f2200e2",
         "3cbb0d34625698be",
@@ -517,7 +515,9 @@
         "15b817619956e1cb",
         "4b4cee00eb3f728f",
         "4c97e2639c9da625",
-        "68026750938f58f9"
+        "68026750938f58f9",
+        "29b44fa5c2c1a705",
+        "6247dcc12fe10af9"
       ],
       "twitter_Zabi_pokeka": [
         "77b37625b298cea7",
@@ -724,11 +724,6 @@
         "ab9bc9252391497d"
       ],
       "twitter_UniteVids": [
-        "11f9d5c734fe0487",
-        "4623daca5d9fd1f8",
-        "6c62700fab439cb4",
-        "b6d5126a26421220",
-        "dd1cbbfe46f66b22",
         "a8c15edd4b4386b5",
         "a82aa7a5743fcdcf",
         "c43fb0b60b9850f4",
@@ -823,7 +818,12 @@
         "e67937c5b06f97cc",
         "b6ec1f20dbbe1ea3",
         "7689ac086a1c28cb",
-        "629698211d83651d"
+        "629698211d83651d",
+        "72c069831347bcf8",
+        "b922a3b40e4cef6a",
+        "912d52a5c2b36fac",
+        "ca91abfaabcc49cb",
+        "16e9efd8712e34fc"
       ],
       "twitter_pokerapidinfo": [
         "1395a4a16db46b30",
@@ -1506,8 +1506,6 @@
         "4e8f7b80c356d76e"
       ],
       "twitter_PokemonGoApp": [
-        "25af1c5151d170c0",
-        "c1f06e89fa2682b7",
         "d0b64ed18c85e79a",
         "87f63bd60f2200e2",
         "3cbb0d34625698be",
@@ -1605,7 +1603,9 @@
         "15b817619956e1cb",
         "4b4cee00eb3f728f",
         "4c97e2639c9da625",
-        "68026750938f58f9"
+        "68026750938f58f9",
+        "29b44fa5c2c1a705",
+        "6247dcc12fe10af9"
       ],
       "twitter_Zabi_pokeka": [
         "77b37625b298cea7",
@@ -1812,11 +1812,6 @@
         "ab9bc9252391497d"
       ],
       "twitter_UniteVids": [
-        "11f9d5c734fe0487",
-        "4623daca5d9fd1f8",
-        "6c62700fab439cb4",
-        "b6d5126a26421220",
-        "dd1cbbfe46f66b22",
         "a8c15edd4b4386b5",
         "a82aa7a5743fcdcf",
         "c43fb0b60b9850f4",
@@ -1911,7 +1906,12 @@
         "e67937c5b06f97cc",
         "b6ec1f20dbbe1ea3",
         "7689ac086a1c28cb",
-        "629698211d83651d"
+        "629698211d83651d",
+        "72c069831347bcf8",
+        "b922a3b40e4cef6a",
+        "912d52a5c2b36fac",
+        "ca91abfaabcc49cb",
+        "16e9efd8712e34fc"
       ],
       "twitter_pokerapidinfo": [
         "1395a4a16db46b30",
