@@ -3,7 +3,6 @@
   "delivered": {
     "telegram": {
       "Pokemon GO Hub": [
-        "5e6d383f03f555e5",
         "46441af7b183e824",
         "1c7fe261f1b02ed7",
         "82efce8f90db1a83",
@@ -102,7 +101,8 @@
         "472c34c3f18500eb",
         "db5deb004bf942da",
         "c9c3b2b4c15331c6",
-        "007b2ee9539aaf42"
+        "007b2ee9539aaf42",
+        "83eaab4a8a2835ab"
       ],
       "Serebii.net": [
         "bce8bd9959113e82",
@@ -727,9 +727,6 @@
         "18fffa6bf02e552e"
       ],
       "twitter_UniteVids": [
-        "e46ee7449f435826",
-        "bf0d47e31c3f6e83",
-        "f837fad27ccfc487",
         "bd8774e326c42949",
         "5236b527fe588e98",
         "75e5608512812990",
@@ -826,7 +823,10 @@
         "601a19366876f5e3",
         "81d2e0f49a7f05d3",
         "c96086c4cea06d81",
-        "dcb5a548533ba68f"
+        "dcb5a548533ba68f",
+        "2dbe204173102d49",
+        "0b638117de7518a2",
+        "44c7b8d869d7dc20"
       ],
       "twitter_pokerapidinfo": [
         "9ee0c988ef584c8e",
@@ -1094,7 +1094,6 @@
     },
     "notion": {
       "Pokemon GO Hub": [
-        "5e6d383f03f555e5",
         "46441af7b183e824",
         "1c7fe261f1b02ed7",
         "82efce8f90db1a83",
@@ -1193,7 +1192,8 @@
         "472c34c3f18500eb",
         "db5deb004bf942da",
         "c9c3b2b4c15331c6",
-        "007b2ee9539aaf42"
+        "007b2ee9539aaf42",
+        "83eaab4a8a2835ab"
       ],
       "Serebii.net": [
         "bce8bd9959113e82",
@@ -1818,9 +1818,6 @@
         "18fffa6bf02e552e"
       ],
       "twitter_UniteVids": [
-        "e46ee7449f435826",
-        "bf0d47e31c3f6e83",
-        "f837fad27ccfc487",
         "bd8774e326c42949",
         "5236b527fe588e98",
         "75e5608512812990",
@@ -1917,7 +1914,10 @@
         "601a19366876f5e3",
         "81d2e0f49a7f05d3",
         "c96086c4cea06d81",
-        "dcb5a548533ba68f"
+        "dcb5a548533ba68f",
+        "2dbe204173102d49",
+        "0b638117de7518a2",
+        "44c7b8d869d7dc20"
       ],
       "twitter_pokerapidinfo": [
         "9ee0c988ef584c8e",
