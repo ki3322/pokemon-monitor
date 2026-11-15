@@ -3,7 +3,7 @@
 兩種清理對象：
   1. 標成「略過」的 —— 看過了、確定不會寫。
   2. 來自 NOTION_EXCLUDED_GROUPS 的 —— 排除設定只擋新的，
-     設定之前已經同步進去的舊項目要靠這裡清。
+     設定之前已經同步進去的舊項目要靠這裡清。已勾選、撰寫中、已完成的除外。
 
 一律走 Notion 的封存（archived）而不是真的刪除：那是「移到垃圾桶」，
 30 天內在 Notion 介面還能還原。
@@ -23,6 +23,9 @@ DEFAULT_STALE_DAYS = 2
 
 # 天數下限：更小的值會讓截止時間落在現在或未來
 MIN_STALE_DAYS = 1
+
+# 已經投入過人力的狀態：不論哪個條件選中，都不該連稿子帶頁面一起清掉
+INVESTED_STATUSES = (schema.STATUS_WRITING, schema.STATUS_DONE)
 
 
 @dataclass(frozen=True)
@@ -94,6 +97,28 @@ def stale_clause(days: int, now: Optional[datetime] = None) -> Dict:
     }
 
 
+def excluded_clause(source_name: str) -> Dict:
+    """「來源已排除」的條件：來源相符，而且沒有人在用。
+
+    排除設定是「以後不要再送進來」，不是「把做過的也丟掉」，所以同樣要有護欄：
+      - 沒勾選：勾了就是要寫，即使來源被排除。
+      - 不是撰寫中／已完成：已經投入過人力。
+
+    每個來源各自一個 and，而不是把所有來源包成一個 or 再 and：
+    外層 cleanup_filter 已經是 or，Notion 的複合條件最多只能兩層。
+    """
+    return {
+        "and": [
+            {"property": schema.SOURCE, "rich_text": {"equals": source_name}},
+            {"property": schema.SELECTED, "checkbox": {"equals": False}},
+            *(
+                {"property": schema.STATUS, "select": {"does_not_equal": status}}
+                for status in INVESTED_STATUSES
+            ),
+        ]
+    }
+
+
 def cleanup_filter(
     status: str,
     sources: Iterable[str],
@@ -107,7 +132,7 @@ def cleanup_filter(
 
     # 排序讓輸出穩定，測試與日誌才可預期
     for name in sorted(sources):
-        clauses.append({"property": schema.SOURCE, "rich_text": {"equals": name}})
+        clauses.append(excluded_clause(name))
 
     if stale:
         clauses.append(stale)

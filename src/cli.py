@@ -279,6 +279,19 @@ def _describe_targets(targets: List[CleanupTarget]) -> None:
         print(f"      來源: {target.source}  |  狀態: {target.status}")
 
 
+def _cleanup_status(args: argparse.Namespace) -> str:
+    """要清的狀態。沒明講時，只有在沒給其他條件的情況下才預設「略過」。
+
+    條件之間是聯集，若預設永遠帶著「略過」，`--stale 2 --yes` 就會順手把
+    所有略過的項目一起清掉——那是人工判斷的結果，不該被附帶清掉。
+    """
+    if args.status is not None:
+        return args.status
+    if args.stale or args.excluded:
+        return ""
+    return schema.STATUS_SKIPPED
+
+
 def command_notion_cleanup(args: argparse.Namespace) -> int:
     """把不需要的項目移到 Notion 垃圾桶（30 天內可還原）。"""
     client = NotionClient()
@@ -295,7 +308,7 @@ def command_notion_cleanup(args: argparse.Namespace) -> int:
 
     cleanup = NotionCleanup(client)
     targets = cleanup.find_targets(
-        status=args.status, sources=sources, stale_days=args.stale
+        status=_cleanup_status(args), sources=sources, stale_days=args.stale
     )
     if targets is None:
         print("[Error] Notion 查詢失敗，未清理任何項目，請稍後再試")
@@ -373,8 +386,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     cleanup_parser.add_argument(
         "--status",
-        default=schema.STATUS_SKIPPED,
-        help=f"清掉這個狀態的項目（預設「{schema.STATUS_SKIPPED}」；給空字串則不依狀態篩選）",
+        default=None,
+        help=(
+            f"清掉這個狀態的項目（沒給 --stale／--excluded 時預設「{schema.STATUS_SKIPPED}」；"
+            "給空字串則不依狀態篩選）"
+        ),
     )
     cleanup_parser.add_argument(
         "--stale",
@@ -389,7 +405,10 @@ def build_parser() -> argparse.ArgumentParser:
     cleanup_parser.add_argument(
         "--excluded",
         action="store_true",
-        help="連同 NOTION_EXCLUDED_GROUPS 的來源一起清（排除設定只擋新的，舊項目要靠這裡）",
+        help=(
+            "清掉 NOTION_EXCLUDED_GROUPS 來源的項目（排除設定只擋新的，舊項目要靠這裡；"
+            "已勾選、撰寫中、已完成的不清）"
+        ),
     )
     cleanup_parser.add_argument(
         "--yes",

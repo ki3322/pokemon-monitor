@@ -316,6 +316,14 @@ class TestNewsBlocks:
     def test_empty_news_explains_itself(self):
         assert "等下一輪監控寫入" in _all_text(nd.news_blocks(self._dashboard(())))
 
+    def test_queue_query_failure_is_not_reported_as_empty(self):
+        """回歸測試：佇列自己的查詢失敗時，不能顯示成「沒有勾選待寫的項目」。"""
+        dashboard = Dashboard("now", notion_configured=True, news=_news(2), checked=None)
+        text = _all_text(nd.news_blocks(dashboard))
+        assert "查詢失敗" in text
+        assert "沒有勾選待寫的項目" not in text
+        assert "最近新聞" in text
+
     def test_query_failure_and_unconfigured_differ(self):
         failed = _all_text(nd.news_blocks(Dashboard("now", notion_configured=True, news=None)))
         unset = _all_text(nd.news_blocks(Dashboard("now", notion_configured=False, news=None)))

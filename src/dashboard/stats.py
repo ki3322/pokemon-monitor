@@ -15,6 +15,10 @@ from src.state import MAX_ITEMS_PER_SOURCE, SINK_NOTION, SINK_TELEGRAM
 KIND_WEBSITE = "website"
 KIND_TWITTER = "twitter"
 
+# 佇列用的是獨立查詢（checked_items），它失敗時新聞列表可能照常有資料。
+# 這時不能顯示「沒有勾選待寫的項目」——那會讓人以為佇列真的是空的。
+QUEUE_UNAVAILABLE = "Notion 查詢失敗，本次無法顯示待撰稿佇列，請稍後重新產生。"
+
 
 @dataclass(frozen=True)
 class GroupStat:
@@ -128,6 +132,11 @@ class Dashboard:
     def pending_groups(self) -> Tuple[GroupStat, ...]:
         """尚未初始化的群組：下一輪只會記錄現況，不會發通知。"""
         return tuple(g for g in self.groups if not g.is_bootstrapped)
+
+    @property
+    def queue_unavailable(self) -> bool:
+        """新聞抓到了、佇列卻沒抓到：佇列那次查詢失敗。"""
+        return self.news is not None and self.checked is None
 
     @property
     def queue(self) -> Tuple[NewsStat, ...]:

@@ -372,9 +372,10 @@ NOTION_EXCLUDED_GROUPS = {
 ### 清掉不需要的項目
 
 ```bash
-python -m src.cli notion-cleanup                      # 預覽：列出「略過」的項目
-python -m src.cli notion-cleanup --excluded           # 預覽：加上排除來源的項目
-python -m src.cli notion-cleanup --excluded --yes     # 真的清掉
+python -m src.cli notion-cleanup                          # 預覽：列出「略過」的項目
+python -m src.cli notion-cleanup --excluded               # 預覽：只列排除來源的項目
+python -m src.cli notion-cleanup --status 略過 --excluded  # 預覽：兩者都列
+python -m src.cli notion-cleanup --excluded --yes         # 真的清掉
 ```
 
 **預設只是預覽**，不加 `--yes` 不會變更任何東西。清理是把頁面移到 Notion 的垃圾桶
@@ -382,13 +383,18 @@ python -m src.cli notion-cleanup --excluded --yes     # 真的清掉
 
 | 參數 | 作用 |
 |---|---|
-| `--status` | 清掉這個狀態的項目（預設「略過」；給空字串 `--status ""` 則不依狀態篩選） |
+| `--status` | 清掉這個狀態的項目（**只有在沒給 `--stale`／`--excluded` 時**預設「略過」；給空字串 `--status ""` 則不依狀態篩選） |
 | `--stale N` | 清掉超過 N 天還沒勾選「寫成文章」的項目（**至少 1**；0 或負數會被拒絕，那種截止時間會匹配所有待處理項目） |
-| `--excluded` | 連同 `NOTION_EXCLUDED_GROUPS` 的來源一起清 |
+| `--excluded` | 清掉 `NOTION_EXCLUDED_GROUPS` 來源的項目（已勾選、撰寫中、已完成的不清，見下） |
 | `--yes` | 真的執行 |
 
-條件之間是**聯集**：任一符合就會被清掉。只想清排除來源、不想動「略過」的話，
-用 `--status "" --excluded`。
+條件之間是**聯集**：任一符合就會被清掉。「略過」只在什麼都沒指定時才是預設，
+所以 `--stale 2 --yes` 不會順手把略過的項目一起清掉；要一起清請明講 `--status 略過`。
+
+#### `--excluded` 的護欄
+
+排除設定的意思是「以後不要再送進來」，不是「把做過的也丟掉」。排除來源的項目
+只有在**沒勾選**、而且狀態**不是撰寫中／已完成**時才會被清。
 
 #### `--stale` 的三道護欄
 
@@ -409,7 +415,8 @@ cp scripts/com.pokemon-monitor.cleanup.plist ~/Library/LaunchAgents/
 launchctl load ~/Library/LaunchAgents/com.pokemon-monitor.cleanup.plist
 ```
 
-每天 09:30 執行，清掉**超過 2 天未勾選**的、以及**排除來源**的項目。天數改
+每天 09:30 執行，清掉**超過 2 天未勾選**的、以及**排除來源**的項目（兩者都有
+[護欄](#--stale-的三道護欄)，已勾選、撰寫中、已完成的不會被清）。天數改
 `scripts/cleanup_once_launchd.sh` 的 `STALE_DAYS`，時間改 plist 的
 `StartCalendarInterval`，改完 `launchctl unload` 再 `load` 一次。
 

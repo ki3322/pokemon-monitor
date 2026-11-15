@@ -204,9 +204,18 @@ class TestNewsUnavailable:
         assert "查詢失敗" in html
 
     def test_configured_but_empty_database(self):
-        html = render_page(Dashboard("now", notion_configured=True, news=()))
+        html = render_page(Dashboard("now", notion_configured=True, news=(), checked=()))
         assert "待撰稿佇列" in html
         assert "沒有勾選待寫的項目" in html
+
+    def test_queue_query_failure_is_not_reported_as_empty(self):
+        """回歸測試：佇列自己的查詢失敗時，不能顯示成「沒有勾選待寫的項目」。"""
+        html = render_page(
+            Dashboard("now", notion_configured=True, news=BLOCKED_NEWS, checked=None)
+        )
+        assert "查詢失敗" in html
+        assert "沒有勾選待寫的項目" not in html
+        assert "最近新聞" in html  # 新聞列表本身照常顯示
 
 
 class TestEscaping:

@@ -8,6 +8,7 @@ from src.notion.cleanup import (
     CleanupTarget,
     NotionCleanup,
     cleanup_filter,
+    excluded_clause,
     excluded_source_names,
     stale_clause,
 )
@@ -84,7 +85,7 @@ class TestCleanupFilter:
 
     def test_sources_only(self):
         clauses = cleanup_filter("", {"@UniteVids"})["or"]
-        assert clauses == [{"property": schema.SOURCE, "rich_text": {"equals": "@UniteVids"}}]
+        assert clauses == [excluded_clause("@UniteVids")]
 
     def test_status_and_sources_are_a_union(self):
         """兩個條件是聯集：略過的、或來自排除來源的，都要清掉。"""
@@ -93,10 +94,46 @@ class TestCleanupFilter:
 
     def test_sources_sorted_for_stable_output(self):
         clauses = cleanup_filter("", {"B", "A"})["or"]
-        assert [c["rich_text"]["equals"] for c in clauses] == ["A", "B"]
+        assert [c["and"][0]["rich_text"]["equals"] for c in clauses] == ["A", "B"]
 
     def test_no_criteria_is_none(self):
         assert cleanup_filter("", set()) is None
+
+
+def _depth(filter_):
+    """複合條件（and / or）的巢狀層數。"""
+    if not isinstance(filter_, dict):
+        return 0
+    for key in ("and", "or"):
+        if key in filter_:
+            return 1 + max((_depth(c) for c in filter_[key]), default=0)
+    return 0
+
+
+class TestExcludedClause:
+    """排除來源也要有護欄：已經投入人力的項目不能因為來源被排除就一起清掉。"""
+
+    CONDITIONS = excluded_clause("@UniteVids")["and"]
+
+    def test_matches_the_source(self):
+        assert {"property": schema.SOURCE, "rich_text": {"equals": "@UniteVids"}} in self.CONDITIONS
+
+    def test_requires_unchecked(self):
+        """勾了就是要寫，就算來源被排除也不清。"""
+        assert {"property": schema.SELECTED, "checkbox": {"equals": False}} in self.CONDITIONS
+
+    @pytest.mark.parametrize("status", [schema.STATUS_WRITING, schema.STATUS_DONE])
+    def test_spares_invested_work(self, status):
+        """撰寫中／已完成代表已經投入過人力。"""
+        assert {
+            "property": schema.STATUS,
+            "select": {"does_not_equal": status},
+        } in self.CONDITIONS
+
+    def test_full_filter_stays_within_notion_nesting_limit(self):
+        """Notion 的複合條件最多兩層，超過會被 API 拒絕。"""
+        filter_ = cleanup_filter(schema.STATUS_SKIPPED, {"A", "B"}, stale_clause(2, NOW))
+        assert _depth(filter_) <= 2
 
 
 class TestFindTargets:

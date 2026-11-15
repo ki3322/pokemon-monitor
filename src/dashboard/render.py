@@ -6,7 +6,14 @@ from typing import List, Sequence
 
 from src.article.html import escape_attribute, escape_text
 from src.dashboard.css import stylesheet
-from src.dashboard.stats import Dashboard, DraftStat, GroupStat, NewsStat, Stage
+from src.dashboard.stats import (
+    QUEUE_UNAVAILABLE,
+    Dashboard,
+    DraftStat,
+    GroupStat,
+    NewsStat,
+    Stage,
+)
 from src.dashboard.theme import PACK_URL
 from src.models import display_group
 from src.notion import schema
@@ -193,7 +200,10 @@ def render_news_sections(dashboard: Dashboard) -> List[str]:
     recent_note = f"最近 {len(dashboard.news)} 則" + (f"｜{counts}" if counts else "")
 
     queue_note = f"已勾選「寫成文章」且狀態為「{schema.STATUS_PENDING}」"
-    body = render_news_rows(dashboard.queue, "沒有勾選待寫的項目。到 Notion 勾選「寫成文章」。")
+    if dashboard.queue_unavailable:
+        body = f'<div class="empty">{escape_text(QUEUE_UNAVAILABLE)}</div>'
+    else:
+        body = render_news_rows(dashboard.queue, "沒有勾選待寫的項目。到 Notion 勾選「寫成文章」。")
 
     if dashboard.blocked:
         # 這些項目不在佇列裡也不會被撿走。不顯示的話就變回無聲的死角。

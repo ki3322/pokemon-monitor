@@ -7,7 +7,7 @@ Notion 沒有自訂 CSS，能表達設計語言的只有色塊、標題階層與
 """
 from typing import Dict, List, Optional, Sequence
 
-from src.dashboard.stats import Dashboard, DraftStat, GroupStat, NewsStat
+from src.dashboard.stats import QUEUE_UNAVAILABLE, Dashboard, DraftStat, GroupStat, NewsStat
 from src.models import display_group
 from src.notion import blocks as nb
 from src.notion import schema
@@ -212,7 +212,11 @@ def news_blocks(dashboard: Dashboard) -> List[Dict]:
         nb.paragraph_block(
             f"已勾選「寫成文章」且狀態為「{schema.STATUS_PENDING}」", color=MUTED
         ),
-        *news_table(dashboard.queue, "沒有勾選待寫的項目。勾選下方任一則就會出現在這裡。"),
+        *(
+            [nb.callout_block(QUEUE_UNAVAILABLE, emoji="🔌", color=MUTED)]
+            if dashboard.queue_unavailable
+            else news_table(dashboard.queue, "沒有勾選待寫的項目。勾選下方任一則就會出現在這裡。")
+        ),
         *blocked_note,
         nb.heading_block("最近新聞", level=2),
         nb.paragraph_block(_recent_note(dashboard), color=MUTED),

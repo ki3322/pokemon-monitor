@@ -363,6 +363,42 @@ class TestNotionCleanupCommand:
         } in conditions
         assert any(c.get("property") == schema.FOUND_AT for c in conditions)
 
+    def _captured_filter(self, monkeypatch, argv):
+        captured = {}
+
+        class Recording(FakeCleanupClient):
+            def query_database(self, filter_=None, page_size=100, sorts=None, limit=None):
+                captured["filter"] = filter_
+                return []
+
+        self._patch(monkeypatch, Recording())
+        assert cli.main(argv) == 0
+        return captured.get("filter")
+
+    @staticmethod
+    def _skipped_clause():
+        from src.notion import schema
+
+        return {"property": schema.STATUS, "select": {"equals": schema.STATUS_SKIPPED}}
+
+    def test_stale_alone_leaves_skipped_items_alone(self, monkeypatch):
+        """回歸測試：--stale 2 --yes 曾經連「略過」一起清掉，因為 --status 預設就是略過。"""
+        filter_ = self._captured_filter(monkeypatch, ["notion-cleanup", "--stale", "2"])
+        assert self._skipped_clause() not in filter_["or"]
+
+    def test_excluded_alone_leaves_skipped_items_alone(self, monkeypatch):
+        filter_ = self._captured_filter(monkeypatch, ["notion-cleanup", "--excluded"])
+        assert self._skipped_clause() not in (filter_ or {}).get("or", [])
+
+    def test_explicit_status_still_combines_with_stale(self, monkeypatch):
+        from src.notion import schema
+
+        filter_ = self._captured_filter(
+            monkeypatch, ["notion-cleanup", "--status", schema.STATUS_SKIPPED, "--stale", "2"]
+        )
+        assert self._skipped_clause() in filter_["or"]
+        assert len(filter_["or"]) == 2
+
     def test_stale_reason_shown_in_preview(self, monkeypatch, capsys):
         client = FakeCleanupClient([_cleanup_page(title="沒人要的新聞", status="待處理")])
         self._patch(monkeypatch, client)
