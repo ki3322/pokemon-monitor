@@ -1,6 +1,11 @@
+from datetime import datetime, timedelta, timezone
+
+import pytest
 import requests
 
-from src.notifier import TelegramNotifier
+from src.notifier import TelegramNotifier, is_quiet_hours
+
+TAIPEI = timezone(timedelta(hours=8))
 
 
 class TestConfiguration:
@@ -86,6 +91,40 @@ class TestMessageFormat:
         )
 
         assert "新推文" in captured["text"]
+
+
+class TestQuietHours:
+    """深夜照常送出但不響鈴：不延遲、不遺失，只是不吵醒人。"""
+
+    @pytest.mark.parametrize("hour, minute, quiet", [
+        (0, 0, True),
+        (3, 30, True),
+        (7, 59, True),
+        (8, 0, False),
+        (13, 0, False),
+        (23, 59, False),
+    ])
+    def test_boundaries_in_taipei_time(self, hour, minute, quiet):
+        assert is_quiet_hours(datetime(2026, 11, 16, hour, minute, tzinfo=TAIPEI)) is quiet
+
+    def test_utc_clock_is_converted_to_taipei(self):
+        """GitHub Actions 的機器跑在 UTC：17:00 UTC 是台北凌晨 1 點。"""
+        assert is_quiet_hours(datetime(2026, 11, 16, 17, 0, tzinfo=timezone.utc)) is True
+        assert is_quiet_hours(datetime(2026, 11, 16, 5, 0, tzinfo=timezone.utc)) is False
+
+    def _sent_payload(self, monkeypatch, now):
+        captured = {}
+        monkeypatch.setattr(requests, "post", lambda url, json, timeout: (captured.update(json) or _ok_response()))
+        TelegramNotifier(bot_token="t", chat_id="c", clock=lambda: now).send_message("hi")
+        return captured
+
+    def test_sends_silently_at_night(self, monkeypatch):
+        payload = self._sent_payload(monkeypatch, datetime(2026, 11, 16, 2, 0, tzinfo=TAIPEI))
+        assert payload["disable_notification"] is True
+
+    def test_rings_during_the_day(self, monkeypatch):
+        payload = self._sent_payload(monkeypatch, datetime(2026, 11, 16, 14, 0, tzinfo=TAIPEI))
+        assert payload["disable_notification"] is False
 
 
 class _Response:

@@ -443,10 +443,13 @@ launchctl unload ~/Library/LaunchAgents/com.pokemon-monitor.cleanup.plist
 - **初次初始化**：新來源（或狀態檔重置後）的第一輪只記錄現況、不發送通知，避免一次湧出整頁內容。
 - **失敗重試**：只有成功送出的通知才會標記為已讀，發送失敗的項目會在下一輪重試。
 - **監控失效告警**：超過半數的 Twitter 帳號或網頁來源抓取失敗時會發出警告，並有 12 小時冷卻避免重複轟炸。
+- **投遞全斷就變紅**：某個目的地（Telegram 或 Notion）在一輪裡有嘗試投遞卻一則都沒成功——通常是 token 失效或權限被撤——該次 GitHub Actions 會顯示失敗。狀態檔照常推送，已送到另一個目的地的項目不會重複送。
+- **深夜靜音**：台北時間 00:00–08:00 的通知照常送出，只是不響鈴（`config.py` 的 `QUIET_HOURS_START`／`QUIET_HOURS_END`）。
+- **排程時間**：每小時的 17 分與 47 分執行，刻意避開整點與半點。GitHub 的排程是盡力而為，尖峰時段的排程常被延後或丟掉。
 
 ## 注意事項
 
 - Twitter 監控透過 RSSHub 實例，可能偶爾不穩定
 - 網頁爬蟲可能因網站改版而需要調整；大量來源同時失敗時會收到 Telegram 警告
-- GitHub Actions 免費帳號每月有 2000 分鐘執行限制
+- 公開 repo 使用 GitHub 標準 runner 不計分鐘數；改成私人 repo 的話，免費帳號每月有 2000 分鐘限制，每 30 分鐘一次約會用掉 1500 分鐘
 - `state.json` 的格式版本變更時（`src/state.py` 的 `STATE_VERSION`）會捨棄舊記錄並重新初始化一次

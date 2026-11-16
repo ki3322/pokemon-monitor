@@ -1,15 +1,40 @@
 """Telegram 通知。"""
-from typing import Optional
+from datetime import datetime, timedelta, timezone
+from typing import Callable, Optional
 
 import requests
 
-from config import REQUEST_TIMEOUT, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+from config import (
+    LOCAL_UTC_OFFSET_HOURS,
+    QUIET_HOURS_END,
+    QUIET_HOURS_START,
+    REQUEST_TIMEOUT,
+    TELEGRAM_BOT_TOKEN,
+    TELEGRAM_CHAT_ID,
+)
+
+LOCAL_TZ = timezone(timedelta(hours=LOCAL_UTC_OFFSET_HOURS))
+
+
+def is_quiet_hours(now: datetime) -> bool:
+    """台北時間是否落在靜音時段。"""
+    return QUIET_HOURS_START <= now.astimezone(LOCAL_TZ).hour < QUIET_HOURS_END
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 class TelegramNotifier:
-    def __init__(self, bot_token: Optional[str] = None, chat_id: Optional[str] = None):
+    def __init__(
+        self,
+        bot_token: Optional[str] = None,
+        chat_id: Optional[str] = None,
+        clock: Callable[[], datetime] = _utc_now,
+    ):
         self.bot_token = bot_token or TELEGRAM_BOT_TOKEN
         self.chat_id = chat_id or TELEGRAM_CHAT_ID
+        self.clock = clock
         self.api_base = f"https://api.telegram.org/bot{self.bot_token}"
 
     def is_configured(self) -> bool:
@@ -33,6 +58,8 @@ class TelegramNotifier:
                     "text": text,
                     "parse_mode": parse_mode,
                     "disable_web_page_preview": False,
+                    # 深夜不響鈴，但照常送達：延到早上再送會讓新聞晚好幾個小時
+                    "disable_notification": is_quiet_hours(self.clock()),
                 },
                 timeout=REQUEST_TIMEOUT,
             )

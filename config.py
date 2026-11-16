@@ -4,6 +4,12 @@ import os
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
+# 靜音時段（台北時間，[開始, 結束) 小時）：這段時間的通知照常送出，只是不響鈴。
+# 用固定時差而不是機器時區：GitHub Actions 的機器跑在 UTC。
+LOCAL_UTC_OFFSET_HOURS = 8
+QUIET_HOURS_START = 0
+QUIET_HOURS_END = 8
+
 # RSSHub 實例 (用於 Twitter/X 監控)
 # 必須用 or 而不是 os.environ.get 的預設值：GitHub Actions 在
 # ${{ vars.RSSHUB_INSTANCE }} 未定義時仍會把環境變數設成「空字串」，
