@@ -42,6 +42,7 @@ jobs:
         run: python -m pytest
 
       - name: Run monitor
+        id: monitor
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -52,6 +53,9 @@ jobs:
         run: python -m src.main
 
       - name: Commit state changes
+        # 監控步驟因某個目的地全數失敗而結束碼 1 時，狀態檔仍然要推送：
+        # 其他目的地（例如 Notion）已經送出的記錄若沒存下來，下一輪會重複送。
+        if: ${{ !cancelled() && (steps.monitor.outcome == 'success' || steps.monitor.outcome == 'failure') }}
         run: |
           set -euo pipefail
 

@@ -3,6 +3,7 @@
 
 執行方式：python -m src.main
 """
+import sys
 from dataclasses import dataclass
 from typing import Dict, List, Set, Tuple
 
@@ -37,10 +38,23 @@ class MonitorRun:
         self.state = state
         self.notifier = notifier
         self.sinks = sinks
-        self.totals = Totals()
+        # 依目的地分開計數：合併計數會讓「Telegram 全掛、Notion 正常」看起來像部分失敗
+        self.sink_totals: Dict[str, Totals] = {}
         # 本輪已初始化的 (目的地, 群組)。同群組的第二個來源必須繼續走初始化流程，
         # 否則它獨有的項目會在第一輪就全部湧出。
         self.bootstrapped: Set[Tuple[str, str]] = set()
+
+    @property
+    def totals(self) -> Totals:
+        return sum(self.sink_totals.values(), Totals())
+
+    def dead_sinks(self) -> Tuple[str, ...]:
+        """本輪有嘗試投遞、卻一則都沒送成功的目的地（例如 token 失效）。"""
+        return tuple(
+            sink.label
+            for sink in self.sinks
+            if (result := self.sink_totals.get(sink.name)) and result.failed and not result.sent
+        )
 
     def process(self, group_id: str, items: List[FeedItem], translate: bool = True) -> str:
         """處理一個來源抓回的項目，回傳要印出的結果說明。"""
@@ -79,7 +93,10 @@ class MonitorRun:
             if not queued:
                 continue
             result = self._deliver_all(sink, group_id, queued, titles)
-            self.totals = self.totals + result
+            self.sink_totals = {
+                **self.sink_totals,
+                sink.name: self.sink_totals.get(sink.name, Totals()) + result,
+            }
             notes.append(self._describe(sink.label, result))
 
         return f"({'，'.join(notes)})" if notes else "(無新內容)"
@@ -255,14 +272,31 @@ def main() -> int:
     alert_twitter_failures(run, twitter_failures)
 
     state.save()
+    return finish(run)
 
+
+def finish(run: MonitorRun) -> int:
+    """印出總結並回傳結束碼。
+
+    某個目的地整輪全數失敗時回傳 1，讓排程顯示失敗。
+    通常是設定壞掉（token 失效、權限被撤），等下一輪也不會自己好；
+    只印在日誌裡的話，排程照樣顯示成功，沒有人會發現。
+    """
     summary = f"\n=== 執行完成：投遞 {run.totals.sent} 則"
     if run.totals.failed:
         summary += f"，{run.totals.failed} 則失敗待下次重試"
     print(summary + " ===")
 
-    return run.totals.sent
+    dead = run.dead_sinks()
+    if not dead:
+        return 0
+
+    print(
+        f"[Error] {'、'.join(dead)} 本輪全部投遞失敗，請檢查憑證或權限"
+        "（例如 GitHub Secrets 的 token）。失敗的項目已保留，修好後下一輪會重送。"
+    )
+    return 1
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

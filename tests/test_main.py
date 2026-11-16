@@ -1,6 +1,6 @@
 import pytest
 
-from src.main import MonitorRun, Totals, validate_config
+from src.main import MonitorRun, Totals, finish, validate_config
 from src.state import SINK_NOTION, SINK_TELEGRAM, StateManager
 from tests.conftest import FakeSink, make_item
 
@@ -143,6 +143,58 @@ class TestDeliveryFailureHandling:
         assert not state.is_delivered(SINK_TELEGRAM, "A", "1")
         assert state.is_delivered(SINK_TELEGRAM, "A", "2")
         assert run.totals == Totals(sent=1, failed=1)
+
+
+class TestDeadSinks:
+    """某個目的地整輪全數失敗（例如 Telegram token 失效）必須讓排程變紅。
+
+    回歸測試：token 被撤銷那天 Telegram 0 則、Notion 2 則，
+    合併計數看起來只是部分失敗，GitHub Actions 照樣顯示成功。
+    """
+
+    ALWAYS_FAIL = range(1, 100)
+
+    def test_sink_that_failed_every_delivery_is_dead(self, state, notion_sink):
+        telegram = FakeSink(SINK_TELEGRAM, "Telegram", fail_on=self.ALWAYS_FAIL)
+        initialized(state, "A", telegram, notion_sink)
+        run = MonitorRun(state, None, [telegram, notion_sink])
+
+        run.process("A", [make_item("1"), make_item("2")])
+
+        assert run.dead_sinks() == ("Telegram",)
+
+    def test_partial_failure_is_not_dead(self, state):
+        sink = FakeSink(fail_on=[1])
+        initialized(state, "A", sink)
+        run = MonitorRun(state, None, [sink])
+
+        run.process("A", [make_item("1"), make_item("2")])
+
+        assert run.dead_sinks() == ()
+
+    def test_sink_with_nothing_to_deliver_is_not_dead(self, state, telegram_sink):
+        initialized(state, "A", telegram_sink)
+        run = MonitorRun(state, None, [telegram_sink])
+
+        run.process("A", [])
+
+        assert run.dead_sinks() == ()
+
+    def test_finish_fails_the_run_when_a_sink_is_dead(self, state, notion_sink, capsys):
+        telegram = FakeSink(SINK_TELEGRAM, "Telegram", fail_on=self.ALWAYS_FAIL)
+        initialized(state, "A", telegram, notion_sink)
+        run = MonitorRun(state, None, [telegram, notion_sink])
+        run.process("A", [make_item("1")])
+
+        assert finish(run) == 1
+        assert "Telegram" in capsys.readouterr().out
+
+    def test_finish_succeeds_on_a_normal_run(self, state, telegram_sink):
+        initialized(state, "A", telegram_sink)
+        run = MonitorRun(state, None, [telegram_sink])
+        run.process("A", [make_item("1")])
+
+        assert finish(run) == 0
 
 
 class TestGroupedSources:
