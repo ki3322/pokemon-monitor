@@ -2,7 +2,7 @@ import pytest
 import requests
 
 from src import translator
-from src.translator import detect_language, split_for_limit, translate_title
+from src.translator import detect_language, split_for_limit, translate, translate_title
 
 
 class FakeResponse:
@@ -212,3 +212,22 @@ class TestFallbackToOriginal:
         out = capsys.readouterr().out
         assert "[Warning]" in out
         assert "MyMemory" in out and "Google" in out
+
+
+class TestTranslateReportsFailure:
+    """呼叫端要知道翻譯有沒有成功，才能發現服務整個掛掉。"""
+
+    def test_returns_translation(self):
+        get = FakeGet({MYMEMORY: FakeResponse(mymemory_payload("譯文"))})
+        assert translate("original", get=get) == "譯文"
+
+    def test_returns_none_when_every_service_fails(self, capsys):
+        get = FakeGet({MYMEMORY: NETWORK_DOWN, GOOGLE: NETWORK_DOWN})
+
+        assert translate("original", get=get) is None
+        assert "[Warning]" in capsys.readouterr().out
+
+    def test_empty_input_is_not_a_failure(self):
+        get = FakeGet({})
+        assert translate("", get=get) == ""
+        assert get.calls == []

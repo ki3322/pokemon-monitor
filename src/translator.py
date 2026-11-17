@@ -9,7 +9,7 @@
 import html
 import os
 import re
-from typing import Callable, List, Tuple
+from typing import Callable, List, Optional, Tuple
 
 import requests
 
@@ -138,11 +138,11 @@ PROVIDERS: Tuple[Tuple[str, Callable[[str, HttpGet], str]], ...] = (
 )
 
 
-def translate_title(text: str, get: HttpGet = requests.get) -> str:
-    """將標題翻譯成繁體中文，所有服務都失敗時回傳原文。
+def translate(text: str, get: HttpGet = requests.get) -> Optional[str]:
+    """將標題翻譯成繁體中文；所有服務都失敗時回傳 None。
 
-    翻譯服務不穩定是可預期的，因此失敗只降級成原文而不中斷整輪監控；
-    已經是繁體中文的來源請在設定中加上 `"translate": False` 略過。
+    回傳 None 而不是原文，呼叫端才分得出「翻譯成功」與「失敗退回原文」，
+    進而發現服務整個掛掉。空字串不需要翻譯，原樣回傳、不算失敗。
 
     Args:
         text: 原文標題。
@@ -163,4 +163,14 @@ def translate_title(text: str, get: HttpGet = requests.get) -> str:
         errors.append(f"{name}: 譯文是空的")
 
     print(f"    [Warning] 翻譯失敗，改用原文: {'；'.join(errors)}")
-    return text
+    return None
+
+
+def translate_title(text: str, get: HttpGet = requests.get) -> str:
+    """將標題翻譯成繁體中文，所有服務都失敗時回傳原文。
+
+    翻譯服務不穩定是可預期的，因此失敗只降級成原文而不中斷整輪監控；
+    已經是繁體中文的來源請在設定中加上 `"translate": False` 略過。
+    """
+    result = translate(text, get)
+    return text if result is None else result

@@ -5,7 +5,7 @@
 """
 import sys
 from dataclasses import dataclass
-from typing import Dict, List, Set, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 from config import NOTION_EXCLUDED_GROUPS, RSS_SOURCES, SCRAPE_SOURCES, TWITTER_ACCOUNTS
 from src.models import FeedItem, source_group, twitter_group
@@ -15,11 +15,15 @@ from src.notifier import TelegramNotifier
 from src.notion.sync import NotionSync
 from src.sinks import build_sinks
 from src.state import StateManager
-from src.translator import translate_title
+from src.translator import translate
 
 TWITTER_ALERT_KEY = "twitter_failure"
 SCRAPE_ALERT_KEY = "scrape_failure"
 ALERT_COOLDOWN_HOURS = 12
+
+# 整輪翻譯至少要失敗這麼多則、而且一則都沒成功，才算翻譯服務失效。
+# 只有一則時可能只是瞬斷，不值得把排程弄紅。
+MIN_TRANSLATION_FAILURES_FOR_OUTAGE = 2
 
 
 @dataclass(frozen=True)
@@ -43,6 +47,8 @@ class MonitorRun:
         # 本輪已初始化的 (目的地, 群組)。同群組的第二個來源必須繼續走初始化流程，
         # 否則它獨有的項目會在第一輪就全部湧出。
         self.bootstrapped: Set[Tuple[str, str]] = set()
+        # 翻譯成功與失敗的則數。失敗只會退回原文，不計數的話服務整個掛掉也看不出來。
+        self.translation = Totals()
 
     @property
     def totals(self) -> Totals:
@@ -54,6 +60,13 @@ class MonitorRun:
             sink.label
             for sink in self.sinks
             if (result := self.sink_totals.get(sink.name)) and result.failed and not result.sent
+        )
+
+    def translation_down(self) -> bool:
+        """本輪的標題翻譯是否全部失敗（例如翻譯服務擋了 GitHub Actions 的機器）。"""
+        return (
+            self.translation.failed >= MIN_TRANSLATION_FAILURES_FOR_OUTAGE
+            and not self.translation.sent
         )
 
     def process(self, group_id: str, items: List[FeedItem], translate: bool = True) -> str:
@@ -107,18 +120,28 @@ class MonitorRun:
             or not self.state.is_initialized(sink.name, group_id)
         )
 
-    @staticmethod
     def _translate_needed(
+        self,
         items: List[FeedItem],
         pending: Dict[str, List[FeedItem]],
-        translate: bool,
+        translate_titles: bool,
     ) -> Dict[str, str]:
-        """只翻譯真的要投遞的標題，而且每則只翻一次（多個目的地共用）。"""
-        needed = {item.id for queued in pending.values() for item in queued}
+        """只翻譯真的要投遞的標題，而且每則只翻一次（多個目的地共用）。
+
+        翻譯失敗退回原文照樣投遞，但會計入失敗數，讓 finish 能發現服務失效。
+        """
+        needed_ids = {item.id for queued in pending.values() for item in queued}
+        needed = [item for item in items if item.id in needed_ids]
+        if not translate_titles:
+            return {item.id: item.title for item in needed}
+
+        results: Dict[str, Optional[str]] = {item.id: translate(item.title) for item in needed}
+        succeeded = sum(1 for result in results.values() if result is not None)
+        self.translation = self.translation + Totals(succeeded, len(results) - succeeded)
+
         return {
-            item.id: (translate_title(item.title) if translate else item.title)
-            for item in items
-            if item.id in needed
+            item.id: (item.title if results[item.id] is None else results[item.id])
+            for item in needed
         }
 
     def _deliver_all(self, sink, group_id: str, items: List[FeedItem], titles: Dict[str, str]) -> Totals:
@@ -278,8 +301,8 @@ def main() -> int:
 def finish(run: MonitorRun) -> int:
     """印出總結並回傳結束碼。
 
-    某個目的地整輪全數失敗時回傳 1，讓排程顯示失敗。
-    通常是設定壞掉（token 失效、權限被撤），等下一輪也不會自己好；
+    某個目的地整輪全數失敗、或標題全部翻譯失敗時回傳 1，讓排程顯示失敗。
+    這類問題通常是設定或外部服務壞掉，等下一輪也不會自己好；
     只印在日誌裡的話，排程照樣顯示成功，沒有人會發現。
     """
     summary = f"\n=== 執行完成：投遞 {run.totals.sent} 則"
@@ -287,15 +310,25 @@ def finish(run: MonitorRun) -> int:
         summary += f"，{run.totals.failed} 則失敗待下次重試"
     print(summary + " ===")
 
-    dead = run.dead_sinks()
-    if not dead:
-        return 0
+    errors = []
 
-    print(
-        f"[Error] {'、'.join(dead)} 本輪全部投遞失敗，請檢查憑證或權限"
-        "（例如 GitHub Secrets 的 token）。失敗的項目已保留，修好後下一輪會重送。"
-    )
-    return 1
+    dead = run.dead_sinks()
+    if dead:
+        errors.append(
+            f"[Error] {'、'.join(dead)} 本輪全部投遞失敗，請檢查憑證或權限"
+            "（例如 GitHub Secrets 的 token）。失敗的項目已保留，修好後下一輪會重送。"
+        )
+
+    if run.translation_down():
+        errors.append(
+            f"[Error] 本輪 {run.translation.failed} 則標題全部翻譯失敗，已用原文送出。"
+            "可能是翻譯服務擋了 GitHub Actions 的機器，或 MyMemory 今日額度用完"
+            "（可新增 MYMEMORY_EMAIL secret 提高額度）。詳見上方的翻譯警告。"
+        )
+
+    for error in errors:
+        print(error)
+    return 1 if errors else 0
 
 
 if __name__ == "__main__":

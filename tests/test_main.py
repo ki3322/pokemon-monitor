@@ -8,7 +8,7 @@ from tests.conftest import FakeSink, make_item
 @pytest.fixture(autouse=True)
 def no_translation(monkeypatch):
     """測試不打外部翻譯服務。"""
-    monkeypatch.setattr("src.main.translate_title", lambda text: text)
+    monkeypatch.setattr("src.main.translate", lambda text: text)
 
 
 @pytest.fixture
@@ -94,7 +94,7 @@ class TestMultipleSinks:
     def test_translation_runs_once_for_all_sinks(self, state, monkeypatch, telegram_sink, notion_sink):
         calls = []
         monkeypatch.setattr(
-            "src.main.translate_title", lambda text: calls.append(text) or f"譯:{text}"
+            "src.main.translate", lambda text: calls.append(text) or f"譯:{text}"
         )
         initialized(state, "A", telegram_sink, notion_sink)
 
@@ -197,6 +197,90 @@ class TestDeadSinks:
         assert finish(run) == 0
 
 
+class TestTranslationOutage:
+    """整輪標題全部翻譯失敗必須讓排程變紅。
+
+    回歸測試：Google 擋了 GitHub Actions 的 IP，11/10 起每則都以原文送出，
+    但失敗只印成警告，排程照樣綠燈，一週後才被發現。
+    """
+
+    @pytest.fixture
+    def failing_translation(self, monkeypatch):
+        monkeypatch.setattr("src.main.translate", lambda text: None)
+
+    def test_failed_translation_still_delivers_the_original(self, state, telegram_sink, failing_translation):
+        initialized(state, "A", telegram_sink)
+
+        MonitorRun(state, None, [telegram_sink]).process("A", [make_item("1", title="Original")])
+
+        assert telegram_sink.delivered[0]["title"] == "Original"
+
+    def test_every_translation_failing_is_an_outage(self, state, telegram_sink, failing_translation):
+        initialized(state, "A", telegram_sink)
+        run = MonitorRun(state, None, [telegram_sink])
+
+        run.process("A", [make_item("1"), make_item("2")])
+
+        assert run.translation_down()
+
+    def test_one_success_is_not_an_outage(self, state, telegram_sink, monkeypatch):
+        """部分失敗通常是單則標題的問題，不代表服務掛了。"""
+        results = iter([None, "譯文", None])
+        monkeypatch.setattr("src.main.translate", lambda text: next(results))
+        initialized(state, "A", telegram_sink)
+        run = MonitorRun(state, None, [telegram_sink])
+
+        run.process("A", [make_item("1"), make_item("2"), make_item("3")])
+
+        assert not run.translation_down()
+
+    def test_a_single_failure_is_too_little_to_call(self, state, telegram_sink, failing_translation):
+        """只有一則可能只是瞬斷；全部落空且至少兩則才算服務失效。"""
+        initialized(state, "A", telegram_sink)
+        run = MonitorRun(state, None, [telegram_sink])
+
+        run.process("A", [make_item("1")])
+
+        assert not run.translation_down()
+
+    def test_sources_without_translation_do_not_count(self, state, telegram_sink, failing_translation):
+        initialized(state, "A", telegram_sink)
+        run = MonitorRun(state, None, [telegram_sink])
+
+        run.process("A", [make_item("1"), make_item("2")], translate=False)
+
+        assert not run.translation_down()
+
+    def test_failures_add_up_across_sources(self, state, telegram_sink, failing_translation):
+        initialized(state, "A", telegram_sink)
+        initialized(state, "B", telegram_sink)
+        run = MonitorRun(state, None, [telegram_sink])
+
+        run.process("A", [make_item("1")])
+        run.process("B", [make_item("2")])
+
+        assert run.translation_down()
+
+    def test_finish_fails_the_run_on_an_outage(self, state, telegram_sink, failing_translation, capsys):
+        initialized(state, "A", telegram_sink)
+        run = MonitorRun(state, None, [telegram_sink])
+        run.process("A", [make_item("1"), make_item("2")])
+
+        assert finish(run) == 1
+        out = capsys.readouterr().out
+        assert "翻譯" in out and "MYMEMORY_EMAIL" in out
+
+    def test_finish_reports_both_problems(self, state, notion_sink, failing_translation, capsys):
+        telegram = FakeSink(SINK_TELEGRAM, "Telegram", fail_on=range(1, 100))
+        initialized(state, "A", telegram, notion_sink)
+        run = MonitorRun(state, None, [telegram, notion_sink])
+        run.process("A", [make_item("1"), make_item("2")])
+
+        assert finish(run) == 1
+        out = capsys.readouterr().out
+        assert "Telegram" in out and "翻譯" in out
+
+
 class TestGroupedSources:
     def test_shared_group_delivers_duplicate_article_once(self, state, telegram_sink):
         """回歸測試：兩個玩具人標籤頁重疊約 29%，共用 group 才不會重複發送。"""
@@ -222,7 +306,7 @@ class TestGroupedSources:
 class TestTranslationToggle:
     def test_translation_skipped_when_disabled(self, state, monkeypatch, telegram_sink):
         initialized(state, "A", telegram_sink)
-        monkeypatch.setattr("src.main.translate_title", lambda text: "不該被呼叫")
+        monkeypatch.setattr("src.main.translate", lambda text: "不該被呼叫")
 
         MonitorRun(state, None, [telegram_sink]).process(
             "A", [make_item("1", title="繁中標題")], translate=False

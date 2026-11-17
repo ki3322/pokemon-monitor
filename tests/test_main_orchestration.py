@@ -17,7 +17,7 @@ from tests.conftest import FakeNotifier, FakeSink, make_item
 
 @pytest.fixture(autouse=True)
 def no_translation(monkeypatch):
-    monkeypatch.setattr("src.main.translate_title", lambda text: text)
+    monkeypatch.setattr("src.main.translate", lambda text: text)
 
 
 @pytest.fixture
@@ -53,7 +53,7 @@ class TestMonitorRss:
 
     def test_respects_translate_flag(self, run, monkeypatch, sink):
         run.state.mark_all_delivered(SINK_TELEGRAM, "S", [])
-        monkeypatch.setattr("src.main.translate_title", lambda text: "翻譯過")
+        monkeypatch.setattr("src.main.translate", lambda text: "翻譯過")
         monkeypatch.setattr(
             "src.main.RSS_SOURCES", [{"name": "S", "url": "https://x", "translate": False}]
         )
