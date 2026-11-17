@@ -44,6 +44,8 @@
 
 （選填）在同一頁的 **Variables** 分頁可設定 `RSSHUB_INSTANCE` 來改用其他 RSSHub 實例。
 
+（選填）標題翻譯用 MyMemory（Google 會擋 GitHub Actions 的機器，只當備援）。匿名每日只有 5,000 字，新增 secret `MYMEMORY_EMAIL`（任一個你收得到信的 email）可提高到 50,000 字。
+
 ### 3. 啟用 GitHub Actions
 
 1. 前往 repository 的 **Actions** 頁面

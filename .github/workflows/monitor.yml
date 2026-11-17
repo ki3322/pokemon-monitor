@@ -52,6 +52,8 @@ jobs:
           # Notion 為選填：未設定時自動略過同步，不影響 Telegram 通知
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
           NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+          # 選填：MyMemory 翻譯的每日額度從 5,000 字提高到 50,000 字
+          MYMEMORY_EMAIL: ${{ secrets.MYMEMORY_EMAIL }}
         run: python -m src.main
 
       - name: Commit state changes
